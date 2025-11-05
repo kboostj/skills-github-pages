@@ -1,18 +1,56 @@
-<html>
-<body>
-  
-// Boost.ai Chat Panel
-<script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
-<script>
-  var boost = window.boostInit("daedalus", {
-    chatPanel: {
-      styling: {
-        fontFamily: "DM Sans"
-      }
-    }
-  });
-  boost.chatPanel.show();
-</script>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Boost.ai Chat Trigger</title>
 
-</body>
+    <style>
+      .boost-trigger-button {
+        background-color: #552a55;
+        border-radius: 72px;
+        border: 0;
+        box-shadow: 0 8px 20px rgba(85, 42, 85, 0.8);
+        color: #fff;
+        cursor: pointer;
+        font-family: inherit, sans-serif; /* button’s own font; Chat Panel uses DM Sans from config */
+        font-size: 18px;
+        font-weight: bold;
+        outline: 0;
+        position: fixed;
+        bottom: 24px;
+        right: 48px;
+        padding: 16px 24px;
+        transition: all 200ms;
+        z-index: 2147483647; /* ensure above site UI */
+      }
+      .boost-trigger-button:hover {
+        background-color: rgb(67, 33, 67);
+        box-shadow: 0 8px 30px rgba(85, 42, 85, 0.8);
+        transform: scale(1.025);
+      }
+    </style>
+
+    <!-- Load the Chat Panel runtime -->
+    <script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
+    <script>
+      // Make 'boost' global so inline onclick can access it
+      var boost = window.boostInit("daedalus", {
+        chatPanel: {
+          styling: {
+            fontFamily: "DM Sans" // exact family name; no fallbacks
+          }
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <button
+      aria-label="Open chat"
+      type="button"
+      class="boost-trigger-button"
+      onclick="boost.chatPanel.show()"
+    >
+      Open chat
+    </button>
+  </body>
 </html>
