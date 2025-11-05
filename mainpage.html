@@ -1,16 +1,79 @@
-<!-- Boost.ai Chat Panel -->
-<script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
-<script>
-  var boost = window.boostInit("daedalus", {
-    chatPanel: {
-      styling: {
-        fontFamily: "DM Sans",
-        position: {
-          zIndex: 2147483647 // put the panel above any site overlays
-        }
-      }
-    }
-  });
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Boost.ai Chat Panel (with logging)</title>
 
-  boost.chatPanel.show();
-</script>
+    <!-- Load the Chat Panel runtime -->
+    <script
+      src="https://daedalus.boost.ai/chatPanel/chatPanel.js"
+      onload="console.log('[boost] chatPanel.js loaded');"
+      onerror="console.error('[boost] chatPanel.js failed to load')">
+    </script>
+  </head>
+  <body>
+    <script>
+      (function () {
+        const t0 = performance.now();
+
+        // Sanity: do we have the init function?
+        console.log('[boost] boostInit present:', typeof window.boostInit === 'function');
+
+        try {
+          // Init with DM Sans and a very high z-index
+          window.boost = window.boostInit('daedalus', {
+            chatPanel: {
+              styling: {
+                fontFamily: 'DM Sans',
+                position: { zIndex: 2147483647 } // ensure above site UI
+              }
+            }
+          });
+          console.log('[boost] boostInit returned object:', !!window.boost, 'in', (performance.now() - t0).toFixed(1), 'ms');
+        } catch (e) {
+          console.error('[boost] boostInit threw', e);
+          return;
+        }
+
+        const cp = window.boost && window.boost.chatPanel;
+        console.log('[boost] chatPanel available:', !!cp);
+
+        if (!cp) return;
+
+        // ---- Event loggers (each logs its detail payload, if any) ----
+        const on = (name) =>
+          cp.addEventListener(name, (ev) => console.log('[boost:event]', name, ev && ev.detail ? ev.detail : null));
+
+        [
+          'chatPanelOpened',
+          'chatPanelClosed',
+          'chatPanelMinimized',
+          'messageSent',
+          'messageReceived',
+          'conversationIdChanged',
+          'filterValuesChanged',
+          'chatStatusChanged',
+          'externalLinkClicked'
+        ].forEach(on);
+
+        // ---- Visibility before/after show() ----
+        if (typeof cp.getVisibility === 'function') {
+          console.log('[boost] visibility (pre-show):', cp.getVisibility()); // "visible" | "closed" | "minimized"
+        }
+
+        console.log('[boost] calling chatPanel.show()');
+        cp.show(); // open the panel
+
+        setTimeout(() => {
+          if (typeof cp.getVisibility === 'function') {
+            const v = cp.getVisibility();
+            console.log('[boost] visibility (post-show):', v);
+            if (v !== 'visible') {
+              console.warn('[boost] show() called but panel not visible. Check page CSS and CORS allowlist.');
+            }
+          }
+        }, 300);
+      })();
+    </script>
+  </body>
+</html>
