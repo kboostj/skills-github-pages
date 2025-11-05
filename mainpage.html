@@ -1,21 +1,32 @@
-<script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
-<script>
-  (function () {
-    // Guard against duplicate init & always use the same global
-    if (!window.boostClient?.chatPanel) {
-      var options = { chatPanel: {} }; // minimal per docs
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Chat Panel</title>
+
+    <!-- Import from your Boost server -->
+    <script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
+  </head>
+  <body>
+    <button type="button" onclick="openChat()">Open chat</button>
+
+    <script>
+      // Minimal options with DM Sans
+      var options = {
+        chatPanel: {
+          styling: {
+            fontFamily: "DM Sans"
+          }
+        }
+      };
+
+      // Single instance; keep an alias for any code calling `window.boost`
       window.boostClient = window.boostInit("daedalus", options);
-      // Optional: keep backward-compat alias if other code calls window.boost
       window.boost = window.boostClient;
-    }
 
-    // Prove it's opening the RIGHT instance
-    var cp = window.boostClient.chatPanel;
-    cp.addEventListener("chatPanelOpened", () => console.log("[boost] opened"));
-    console.log("[boost] pre-show:", cp.getVisibility()); // "closed" initially
-
-    cp.show(); // open the panel
-
-    setTimeout(() => console.log("[boost] post-show:", cp.getVisibility()), 200);
-  })();
-</script>
+      function openChat() {
+        window.boostClient.chatPanel.show();
+      }
+    </script>
+  </body>
+</html>
