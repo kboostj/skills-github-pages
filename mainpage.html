@@ -1,8 +1,18 @@
 <html>
 <body>
+  
+// Boost.ai Chat Panel
 <script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
 <script>
-  var boost = window.boostInit("daedalus");
+  const boost = window.boostInit("daedalus", {
+    chatPanel: {
+      styling: {
+        fontFamily: "DM Sans"
+      }
+    }
+  });
+  boost.chatPanel.show();
 </script>
+
 </body>
 </html>
