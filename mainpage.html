@@ -1,11 +1,15 @@
 <script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
 <script>
-  var boost = window.boostInit("daedalus", {
+  // Single init — pass styling.fontFamily here
+  var options = {
     chatPanel: {
       styling: {
         fontFamily: "DM Sans"
       }
     }
-  });
-  (window.boostClient || window.boost).chatPanel.show();
+  };
+  window.boost = window.boostInit("daedalus", options); // one global
+
+  // Open via code or a button
+  window.boost.chatPanel.show();
 </script>
