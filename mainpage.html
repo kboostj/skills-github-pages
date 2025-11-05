@@ -1,24 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Chat Panel</title>
+<script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
+<script>
+  (function () {
+    // Guard against duplicate init & always use the same global
+    if (!window.boostClient?.chatPanel) {
+      var options = { chatPanel: {} }; // minimal per docs
+      window.boostClient = window.boostInit("daedalus", options);
+      // Optional: keep backward-compat alias if other code calls window.boost
+      window.boost = window.boostClient;
+    }
 
-    <!-- 1) Import chatPanel.js from your Boost server -->
-    <script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
-  </head>
-  <body>
-    <!-- 2) Trigger to open the chat -->
-    <button type="button" onclick="openChat()">Open chat</button>
+    // Prove it's opening the RIGHT instance
+    var cp = window.boostClient.chatPanel;
+    cp.addEventListener("chatPanelOpened", () => console.log("[boost] opened"));
+    console.log("[boost] pre-show:", cp.getVisibility()); // "closed" initially
 
-    <!-- 3) Configure and initialize, then wire the trigger -->
-    <script>
-      var options = { chatPanel: {} };           // minimal config as per docs
-      var boost = window.boostInit("daedalus", options);
+    cp.show(); // open the panel
 
-      function openChat() {
-        boost.chatPanel.show();
-      }
-    </script>
-  </body>
-</html>
+    setTimeout(() => console.log("[boost] post-show:", cp.getVisibility()), 200);
+  })();
+</script>
