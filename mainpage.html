@@ -1,29 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Chat Panel</title>
-    <script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
-  </head>
-  <body>
-    <button type="button" onclick="javascript:openChat()">Open chat</button>
-
-    <script>
-      var options = {
-        chatPanel: {
-          header: {
-            title: "My chat panel",
-          },
-          styling: {
-            pace: "supersonic",
-          },
-        },
-      };
-      var boost = window.boostInit("daedalus", options);
-
-      function openChat() {
-        boost.chatPanel.show();
+<script src="https://your-name.boost.ai/chatPanel/chatPanel.js"></script>
+<script>
+  const boost = window.boostInit("your-name", {
+    chatPanel: {
+      styling: {
+        fontFamily: "DM Sans"
       }
-    </script>
-  </body>
-</html>
+    }
+  });
+  boost.chatPanel.show();
+</script>
