@@ -2,7 +2,14 @@
 <body>
 <script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
 <script>
-  var boost = window.boostInit("daedalus");
+  var options = {
+    chatPanel: {
+      settings: {
+        openTextLinksInNewTab: true
+      }
+    }
+  };
+  var boost = window.boostInit("daedalus", options);
 </script>
 </body>
 </html>
