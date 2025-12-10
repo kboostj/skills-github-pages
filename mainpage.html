@@ -1,12 +1,15 @@
 <script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
 <script>
+  // Configure chat panel options
   var options = {
     chatPanel: {
       settings: {
+        // Make all text hyperlinks open in a new browser tab
         openTextLinksInNewTab: true
       }
     }
   };
 
-  var boost = window.boostInit("daedalus", options);
+  // Initialize boost and expose it globally so you can use it from the console
+  window.boost = window.boostInit("daedalus", options);
 </script>
