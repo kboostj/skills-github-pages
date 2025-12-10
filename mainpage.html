@@ -1,11 +1,12 @@
 <script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
 <script>
-  const boost = window.boostInit("daedalus", {
+  var options = {
     chatPanel: {
-      styling: {
-        fontFamily: "DM Sans"
+      settings: {
+        openTextLinksInNewTab: true
       }
     }
-  });
-  boost.chatPanel.show();
+  };
+
+  var boost = window.boostInit("daedalus", options);
 </script>
