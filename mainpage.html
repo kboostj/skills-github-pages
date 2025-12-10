@@ -4,12 +4,20 @@
   var options = {
     chatPanel: {
       settings: {
-        // Make all text hyperlinks open in a new browser tab
         openTextLinksInNewTab: true
       }
     }
   };
 
-  // Initialize boost and expose it globally so you can use it from the console
+  // Initialize boost and expose it globally
   window.boost = window.boostInit("daedalus", options);
 </script>
+
+<button
+  aria-label="Open chat"
+  type="button"
+  class="boost-trigger-button"
+  onclick="javascript:boost.chatPanel.show()"
+>
+  Open chat
+</button>
