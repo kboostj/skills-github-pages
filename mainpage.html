@@ -1,15 +1,18 @@
-<html><head></head>
-<body>
-<script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
-<script>
-  var options = {
-    chatPanel: {
-      settings: {
-        openTextLinksInNewTab: false
-      }
-    }
-  };
-  var boost = window.boostInit("daedalus", options);
-</script>
-</body>
+<html>
+  <head></head>
+  <body>
+    <script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
+    <script>
+      var options = {
+        chatPanel: {
+          settings: {
+            startLanguage: "da-DK",     // Set to your desired language code
+            openTextLinksInNewTab: false
+          }
+        }
+      };
+
+      var boost = window.boostInit("daedalus", options);
+    </script>
+  </body>
 </html>
