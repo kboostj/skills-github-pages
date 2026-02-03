@@ -1,12 +1,20 @@
 <html>
-  <head></head>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <style>
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      img, video, svg, canvas { max-width: 100%; height: auto; }
+      body { -webkit-text-size-adjust: 100%; }
+    </style>
+  </head>
   <body>
     <script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
     <script>
       var options = {
         chatPanel: {
           settings: {
-            startLanguage: "da-DK",     // Set to your desired language code
+            startLanguage: "da-DK",
             openTextLinksInNewTab: false
           }
         }
