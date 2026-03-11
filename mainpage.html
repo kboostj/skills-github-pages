@@ -23,36 +23,31 @@
   onclick="javascript:boost.chatPanel.show()"
 >
   <img
-    src="https://raw.githubusercontent.com/kboostj/skills-github-pages/refs/heads/main/Klara%20logo.jpg"
+    src="https://github.com/kboostj/skills-github-pages/blob/main/Klara%20logo.jpg"
     alt="Klara"
     class="klara-chat-trigger__icon"
   />
-  <span class="klara-chat-trigger__label">Chat med Klara</span>
 </button>
 
 <style>
   .klara-chat-trigger {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background-color: #1189c9;
+    background: none;
     border: none;
-    border-radius: 50px;
-    box-shadow: 0px 6px 20px rgba(17, 137, 201, 0.55);
     cursor: pointer;
     outline: none;
-    padding: 6px 20px 6px 6px;
+    padding: 0;
     position: fixed;
     bottom: 28px;
     right: 28px;
-    transition: transform 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
+    border-radius: 50%;
+    box-shadow: 0px 6px 20px rgba(17, 137, 201, 0.55);
+    transition: transform 200ms ease, box-shadow 200ms ease;
     z-index: 9999;
   }
 
   .klara-chat-trigger:hover {
-    background-color: #0d72aa;
     box-shadow: 0px 8px 28px rgba(17, 137, 201, 0.7);
-    transform: scale(1.04);
+    transform: scale(1.06);
   }
 
   .klara-chat-trigger:active {
@@ -61,22 +56,13 @@
   }
 
   .klara-chat-trigger__icon {
-    width: 48px;
-    height: 48px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     object-fit: cover;
     display: block;
-    flex-shrink: 0;
   }
-
-  .klara-chat-trigger__label {
-    color: #ffffff;
-    font-family: 'Segoe UI', Arial, sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    white-space: nowrap;
-  }
+</style>
 </style>
     </script>
   </body>
