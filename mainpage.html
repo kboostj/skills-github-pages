@@ -18,8 +18,13 @@
         right: 28px;
         border-radius: 50%;
         box-shadow: 0px 6px 20px rgba(17, 137, 201, 0.55);
-        transition: transform 200ms ease, box-shadow 200ms ease;
+        transition: transform 200ms ease, box-shadow 200ms ease, opacity 400ms ease;
         z-index: 9999;
+        opacity: 1;
+      }
+      .klara-chat-trigger.is-hidden {
+        opacity: 0.15;
+        pointer-events: none;
       }
       .klara-chat-trigger:hover {
         box-shadow: 0px 8px 28px rgba(17, 137, 201, 0.7);
@@ -44,7 +49,7 @@
       aria-label="Åpne chat"
       type="button"
       class="klara-chat-trigger"
-      onclick="this.style.display='none'; boost.chatPanel.show();"
+      onclick="this.classList.add('is-hidden'); boost.chatPanel.show();"
     >
       <img
         src="https://raw.githubusercontent.com/kboostj/skills-github-pages/refs/heads/main/Klara%20logo.jpg"
@@ -58,7 +63,7 @@
       var boost = window.boostInit("daedalus");
 
       boost.chatPanel.addEventListener("chatPanelClosed", function () {
-        document.querySelector(".klara-chat-trigger").style.display = "block";
+        document.querySelector(".klara-chat-trigger").classList.remove("is-hidden");
       });
     </script>
 
