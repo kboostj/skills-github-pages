@@ -6,64 +6,61 @@
       html, body { margin: 0; padding: 0; }
       img, video, svg, canvas { max-width: 100%; height: auto; }
       body { -webkit-text-size-adjust: 100%; }
+
+      .klara-chat-trigger {
+        background: none;
+        border: none;
+        cursor: pointer;
+        outline: none;
+        padding: 0;
+        position: fixed;
+        bottom: 28px;
+        right: 28px;
+        border-radius: 50%;
+        box-shadow: 0px 6px 20px rgba(17, 137, 201, 0.55);
+        transition: transform 200ms ease, box-shadow 200ms ease;
+        z-index: 9999;
+      }
+      .klara-chat-trigger:hover {
+        box-shadow: 0px 8px 28px rgba(17, 137, 201, 0.7);
+        transform: scale(1.06);
+      }
+      .klara-chat-trigger:active {
+        transform: scale(0.97);
+        box-shadow: 0px 4px 12px rgba(17, 137, 201, 0.5);
+      }
+      .klara-chat-trigger__icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        object-fit: cover;
+        display: block;
+      }
     </style>
   </head>
   <body>
-<!-- Boost.ai Chat Panel Script -->
-<script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
-<script>
-  var boost = window.boostInit("daedalus");
-</script>
 
-<!-- Chat Trigger Button -->
-<button
-  aria-label="Åpne chat"
-  type="button"
-  class="klara-chat-trigger"
-  onclick="javascript:boost.chatPanel.show()"
->
-  <img
-    src="https://raw.githubusercontent.com/kboostj/skills-github-pages/refs/heads/main/Klara%20logo.jpg"
-    alt="Klara"
-    class="klara-chat-trigger__icon"
-  />
-</button>
+    <button
+      aria-label="Åpne chat"
+      type="button"
+      class="klara-chat-trigger"
+      onclick="this.style.display='none'; boost.chatPanel.show();"
+    >
+      <img
+        src="https://raw.githubusercontent.com/kboostj/skills-github-pages/refs/heads/main/Klara%20logo.jpg"
+        alt="Klara"
+        class="klara-chat-trigger__icon"
+      />
+    </button>
 
-<style>
-  .klara-chat-trigger {
-    background: none;
-    border: none;
-    cursor: pointer;
-    outline: none;
-    padding: 0;
-    position: fixed;
-    bottom: 28px;
-    right: 28px;
-    border-radius: 50%;
-    box-shadow: 0px 6px 20px rgba(17, 137, 201, 0.55);
-    transition: transform 200ms ease, box-shadow 200ms ease;
-    z-index: 9999;
-  }
+    <script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
+    <script>
+      var boost = window.boostInit("daedalus");
 
-  .klara-chat-trigger:hover {
-    box-shadow: 0px 8px 28px rgba(17, 137, 201, 0.7);
-    transform: scale(1.06);
-  }
-
-  .klara-chat-trigger:active {
-    transform: scale(0.97);
-    box-shadow: 0px 4px 12px rgba(17, 137, 201, 0.5);
-  }
-
-  .klara-chat-trigger__icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    object-fit: cover;
-    display: block;
-  }
-</style>
-</style>
+      boost.chatPanel.addEventListener("chatPanelClosed", function () {
+        document.querySelector(".klara-chat-trigger").style.display = "block";
+      });
     </script>
+
   </body>
 </html>
