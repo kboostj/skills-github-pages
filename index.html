@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agent Discovery — bootstrap a conversational AI hierarchy from any URL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper:        #f4efe6;
+    --paper-deep:   #ece5d6;
+    --ink:          #14110f;
+    --ink-soft:     #3a342e;
+    --ink-mute:     #6b6258;
+    --rule:         #d9cfbb;
+    --signal:       #c8482a;
+    --signal-soft:  #e8c2b3;
+    --good:         #2f6f4f;
+    --bad:          #a23420;
+    --shadow:       0 1px 0 rgba(20,17,15,0.06), 0 8px 24px -12px rgba(20,17,15,0.18);
+    --serif:        'Fraunces', Georgia, serif;
+    --mono:         'JetBrains Mono', ui-monospace, Menlo, monospace;
+    --sans:         'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(200,72,42,0.05) 0, transparent 40%),
+      radial-gradient(circle at 88% 92%, rgba(20,17,15,0.04) 0, transparent 50%);
+    min-height: 100vh;
+  }
+
+  /* Subtle paper grain */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    opacity: 0.4;
+    z-index: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.08  0 0 0 0 0.07  0 0 0 0 0.06  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 56px 32px 96px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header.masthead {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 24px;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 18px;
+    margin-bottom: 12px;
+  }
+  .brand {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+  .brand b { color: var(--ink); font-weight: 600; }
+  .meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-mute);
+    text-align: right;
+    letter-spacing: 0.04em;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(40px, 6vw, 76px);
+    line-height: 0.95;
+    letter-spacing: -0.025em;
+    margin: 24px 0 8px;
+    font-variation-settings: "opsz" 144;
+  }
+  h1 em {
+    font-style: italic;
+    color: var(--signal);
+    font-weight: 300;
+  }
+  .lede {
+    font-family: var(--serif);
+    font-size: 19px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    max-width: 64ch;
+    margin: 0 0 40px;
+    font-variation-settings: "opsz" 36;
+  }
+
+  /* Section labels */
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 14px;
+  }
+  .section-label::before {
+    content: "";
+    width: 18px; height: 1px;
+    background: var(--ink);
+    display: inline-block;
+  }
+  .section-label .num {
+    color: var(--signal);
+    font-weight: 600;
+  }
+
+  /* Form card */
+  .panel {
+    background: rgba(255,253,248,0.6);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 28px;
+    box-shadow: var(--shadow);
+    margin-bottom: 28px;
+  }
+
+  .field {
+    display: block;
+    margin-bottom: 20px;
+  }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .field label .hint {
+    font-family: var(--sans);
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--ink-mute);
+    margin-left: 8px;
+    font-size: 12px;
+  }
+
+  input[type="text"], input[type="password"], input[type="url"], select, textarea {
+    width: 100%;
+    border: 1px solid var(--rule);
+    background: #fffdf7;
+    padding: 12px 14px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink);
+    border-radius: 2px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  textarea {
+    font-family: var(--sans);
+    font-size: 14px;
+    min-height: 160px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--ink);
+    box-shadow: 0 0 0 3px rgba(20,17,15,0.08);
+  }
+
+  .row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 720px) { .row-2 { grid-template-columns: 1fr; } }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 22px;
+  }
+  .tab {
+    background: none;
+    border: none;
+    padding: 10px 18px 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active {
+    color: var(--ink);
+    border-bottom-color: var(--signal);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 24px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: transform 0.06s, background 0.15s;
+    font-weight: 500;
+  }
+  .btn:hover { background: var(--signal); border-color: var(--signal); }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--ink);
+  }
+  .btn.ghost {
+    background: transparent;
+    color: var(--ink);
+  }
+  .btn.ghost:hover { background: var(--ink); color: var(--paper); }
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  /* Status / log */
+  .log {
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    background: #1a1714;
+    color: #e8e0cf;
+    padding: 18px 20px;
+    border-radius: 2px;
+    max-height: 280px;
+    overflow-y: auto;
+    margin-top: 18px;
+    border: 1px solid var(--ink);
+  }
+  .log .line { display: block; }
+  .log .ok    { color: #9bd5b1; }
+  .log .err   { color: #ef9a85; }
+  .log .info  { color: #f0d589; }
+  .log .dim   { color: #8a8275; }
+  .log .url   { color: #cfd8e3; word-break: break-all; }
+
+  /* Output */
+  .output { margin-top: 36px; }
+  .output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 16px;
+    margin-bottom: 32px;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .output-title {
+    font-family: var(--serif);
+    font-size: 36px;
+    letter-spacing: -0.02em;
+    margin: 0;
+    font-weight: 400;
+    font-variation-settings: "opsz" 72;
+  }
+  .output-title em {
+    font-style: italic;
+    color: var(--signal);
+  }
+  .output-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .output-actions .btn {
+    padding: 10px 16px;
+    font-size: 11px;
+  }
+
+  .category {
+    margin-bottom: 44px;
+  }
+  .category-name {
+    font-family: var(--serif);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--signal);
+    font-weight: 600;
+    margin: 0 0 6px;
+    font-style: normal;
+  }
+  .category-rule {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 8px;
+    margin-bottom: 22px;
+  }
+  .category-count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-mute);
+    margin-left: auto;
+  }
+
+  .agents {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 22px;
+  }
+  .agent {
+    background: rgba(255,253,248,0.7);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--signal);
+    padding: 22px 24px;
+    border-radius: 2px;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .agent:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+  }
+  .agent-name {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 500;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  .agent-desc {
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin: 0 0 12px;
+  }
+  .agent-scope {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+  .agent-scope li { margin-bottom: 3px; }
+  .agent-sources {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--rule);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-mute);
+    letter-spacing: 0.04em;
+  }
+  .agent-sources a {
+    color: var(--ink-mute);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--ink-mute);
+    margin-right: 8px;
+    word-break: break-all;
+  }
+  .agent-sources a:hover { color: var(--signal); border-color: var(--signal); }
+
+  /* Notice */
+  .notice {
+    background: var(--signal-soft);
+    border-left: 3px solid var(--signal);
+    padding: 12px 16px;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 18px;
+    color: var(--ink);
+  }
+  .notice b { font-weight: 600; }
+
+  /* Footer */
+  footer.colophon {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-mute);
+    letter-spacing: 0.06em;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  footer a { color: var(--ink-soft); }
+
+  /* Spinner */
+  .spinner {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  details.advanced {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--rule);
+  }
+  details.advanced summary {
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    user-select: none;
+  }
+  details.advanced summary:hover { color: var(--ink); }
+  details.advanced[open] summary { color: var(--ink); margin-bottom: 16px; }
+
+  .key-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .key-row input { flex: 1; }
+  .key-toggle {
+    background: none;
+    border: 1px solid var(--rule);
+    padding: 11px 14px;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+    border-radius: 2px;
+  }
+  .key-toggle:hover { border-color: var(--ink); color: var(--ink); }
+
+  .empty {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--ink-mute);
+    font-family: var(--serif);
+    font-size: 18px;
+    font-style: italic;
+  }
+
+  .ascii-rule {
+    font-family: var(--mono);
+    color: var(--ink-mute);
+    font-size: 12px;
+    letter-spacing: -0.05em;
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 30px 0;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="brand"><b>Agent Discovery</b> &nbsp;·&nbsp; bootstrap your conversational AI hierarchy</div>
+    <div class="meta" id="dateMeta"></div>
+  </header>
+
+  <h1>Point at a URL.<br>Get an <em>agent hierarchy</em>.</h1>
+  <p class="lede">
+    A small tool that reads a public website, infers the topics a virtual assistant on that site would need to handle,
+    and returns a clean category → agent → scope tree. Useful for quickly seeding a Boost / Kore / Cognigy / etc.
+    project instead of staring at a blank canvas. Bring your own Anthropic API key — nothing is stored on a server.
+  </p>
+
+  <!-- INPUT PANEL -->
+  <div class="panel">
+    <p class="section-label"><span class="num">01</span> Input</p>
+
+    <div class="notice">
+      <b>First time?</b> The default fetch path uses your own free Cloudflare Worker proxy (5-minute setup, see README). Public CORS proxies have become unreliable in 2026 — using your own Worker is the only consistently-working option. You can also use the <b>Paste content</b> tab to skip fetching entirely.
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="url">From URL</button>
+      <button class="tab" data-tab="paste">Paste content</button>
+    </div>
+
+    <!-- URL MODE -->
+    <div class="tab-panel" id="tab-url">
+      <div class="field">
+        <label>Target URL <span class="hint">homepage of the site you want to model</span></label>
+        <input type="url" id="targetUrl" placeholder="https://example.com" autocomplete="off" />
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label>Language hint <span class="hint">optional</span></label>
+          <select id="langHint">
+            <option value="auto">Auto-detect</option>
+            <option value="en">English</option>
+            <option value="da">Dansk</option>
+            <option value="sv">Svenska</option>
+            <option value="no">Norsk</option>
+            <option value="de">Deutsch</option>
+            <option value="fr">Français</option>
+            <option value="es">Español</option>
+            <option value="nl">Nederlands</option>
+            <option value="fi">Suomi</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Max pages to fetch <span class="hint">1-12</span></label>
+          <input type="text" id="maxPages" value="6" inputmode="numeric" />
+        </div>
+      </div>
+    </div>
+
+    <!-- PASTE MODE -->
+    <div class="tab-panel" id="tab-paste" style="display:none;">
+      <div class="field">
+        <label>Pasted content <span class="hint">paste plain text from a site if fetching is blocked</span></label>
+        <textarea id="pastedContent" placeholder="Paste the homepage / FAQ / support content here..."></textarea>
+      </div>
+    </div>
+
+    <!-- CREDENTIALS -->
+    <div class="field" style="margin-top: 8px;">
+      <label>Anthropic API key <span class="hint">stored only in this browser tab (sessionStorage)</span></label>
+      <div class="key-row">
+        <input type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off" />
+        <button class="key-toggle" id="toggleKey" type="button">show</button>
+      </div>
+    </div>
+
+    <details class="advanced">
+      <summary>Advanced options</summary>
+      <div class="row-2">
+        <div class="field">
+          <label>CORS proxy <span class="hint">how external pages get fetched</span></label>
+          <select id="corsProxy">
+            <option value="worker" selected>My Cloudflare Worker (recommended — set URL below)</option>
+            <option value="auto">Auto: try public proxies (corsproxy.io → allorigins → codetabs)</option>
+            <option value="https://corsproxy.io/?url=">corsproxy.io only</option>
+            <option value="https://api.allorigins.win/raw?url=">allorigins.win only</option>
+            <option value="https://api.codetabs.com/v1/proxy?quest=">codetabs only</option>
+            <option value="">None (only works on CORS-permissive sites)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Worker URL <span class="hint">your worker, e.g. https://name.workers.dev</span></label>
+          <input type="url" id="workerUrl" placeholder="https://your-worker.your-name.workers.dev" autocomplete="off" />
+        </div>
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label>Model</label>
+          <select id="model">
+            <option value="claude-opus-4-7">claude-opus-4-7 (highest quality)</option>
+            <option value="claude-sonnet-4-6" selected>claude-sonnet-4-6 (balanced, default)</option>
+            <option value="claude-haiku-4-5">claude-haiku-4-5 (fast)</option>
+          </select>
+        </div>
+      </div>
+    </details>
+
+    <div style="margin-top: 22px;" class="btn-row">
+      <button class="btn" id="runBtn">
+        <span id="runLabel">Discover agents</span>
+      </button>
+      <button class="btn ghost" id="clearBtn" type="button">Clear</button>
+    </div>
+
+    <div class="log" id="log" style="display:none;"></div>
+  </div>
+
+  <!-- OUTPUT -->
+  <div class="output" id="output">
+    <div class="empty">No results yet. Enter a URL and an API key to begin.</div>
+  </div>
+
+  <footer class="colophon">
+    <span>BYOK · runs entirely client-side · no data leaves your browser except to Anthropic + the chosen CORS proxy</span>
+    <span><a href="https://github.com" target="_blank" rel="noopener">source</a></span>
+  </footer>
+</div>
+
+<script>
+/* ----------------------------------------------------------
+   Agent Discovery — single-file BYOK app
+   ---------------------------------------------------------- */
+
+const $ = (id) => document.getElementById(id);
+const log = $('log');
+
+function logLine(msg, cls = '') {
+  log.style.display = 'block';
+  const line = document.createElement('span');
+  line.className = 'line ' + cls;
+  line.innerHTML = msg;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+function clearLog() { log.innerHTML = ''; log.style.display = 'none'; }
+
+/* Date meta in masthead */
+(function setDate() {
+  const d = new Date();
+  const f = d.toLocaleDateString('en-US', { year:'numeric', month:'short', day:'2-digit' }).toUpperCase();
+  $('dateMeta').textContent = `Vol. 01 · ${f}`;
+})();
+
+/* Tab switching */
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    const tab = t.dataset.tab;
+    $('tab-url').style.display   = tab === 'url'   ? '' : 'none';
+    $('tab-paste').style.display = tab === 'paste' ? '' : 'none';
+  });
+});
+
+/* Restore key from sessionStorage */
+(function restoreKey() {
+  const k = sessionStorage.getItem('agentdisco_key');
+  if (k) $('apiKey').value = k;
+  $('apiKey').addEventListener('input', () => {
+    sessionStorage.setItem('agentdisco_key', $('apiKey').value);
+  });
+})();
+
+/* Restore worker URL from localStorage (persists across sessions) */
+(function restoreWorker() {
+  const w = localStorage.getItem('agentdisco_worker');
+  if (w) $('workerUrl').value = w;
+  $('workerUrl').addEventListener('input', () => {
+    localStorage.setItem('agentdisco_worker', $('workerUrl').value);
+  });
+})();
+
+/* Toggle key visibility */
+$('toggleKey').addEventListener('click', () => {
+  const inp = $('apiKey');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  $('toggleKey').textContent = inp.type === 'password' ? 'show' : 'hide';
+});
+
+/* Clear */
+$('clearBtn').addEventListener('click', () => {
+  $('targetUrl').value = '';
+  $('pastedContent').value = '';
+  $('output').innerHTML = '<div class="empty">No results yet. Enter a URL and an API key to begin.</div>';
+  clearLog();
+});
+
+/* ----------------------------------------------------------
+   1. Page discovery
+   ---------------------------------------------------------- */
+
+const SUPPORT_KEYWORDS = [
+  // EN
+  'support','help','faq','contact','customer','service','about','product','products','pricing','plans',
+  'how','guide','documentation','docs','knowledge','center','centre','feature','features','solution','solutions',
+  // DA / NO / SV
+  'kundeservice','kunde','hjælp','hjelp','hjälp','ofte','spørgsmål','spørsmål','fragor','frågor','priser','abonnement','vilkår','vilkar','villkor',
+  // DE
+  'hilfe','kunde','kundenservice','häufige','fragen','preise','produkte','kontakt','über',
+  // FR
+  'aide','contact','produits','tarifs','services','client','clientele',
+  // ES
+  'ayuda','contacto','productos','precios','servicios','cliente','soporte',
+  // NL
+  'hulp','klantenservice','contact','producten','prijzen','veelgestelde'
+];
+
+function scoreLink(url, anchorText) {
+  const hay = (url + ' ' + (anchorText || '')).toLowerCase();
+  let score = 0;
+  for (const kw of SUPPORT_KEYWORDS) {
+    if (hay.includes(kw)) score += 1;
+  }
+  // Penalize obviously irrelevant
+  if (/\.(jpg|jpeg|png|gif|svg|pdf|zip|mp4|css|js)(\?|$)/i.test(url)) score -= 10;
+  if (/(login|signin|signup|cart|checkout|account|password|logout)/i.test(hay)) score -= 3;
+  if (/(privacy|cookie|terms|legal|gdpr|imprint|impressum)/i.test(hay)) score -= 2;
+  // Prefer same-language paths
+  const depth = (url.split('/').length - 3);
+  if (depth > 4) score -= 1;
+  return score;
+}
+
+function absUrl(href, base) {
+  try { return new URL(href, base).toString(); }
+  catch { return null; }
+}
+
+function sameDomain(a, b) {
+  try {
+    const ha = new URL(a).hostname.replace(/^www\./, '');
+    const hb = new URL(b).hostname.replace(/^www\./, '');
+    return ha === hb || ha.endsWith('.' + hb) || hb.endsWith('.' + ha);
+  } catch { return false; }
+}
+
+/* List of proxies to try in order. Each entry knows how to build a target URL. */
+const PROXY_CHAIN = [
+  { name: 'corsproxy.io',   build: (u) => 'https://corsproxy.io/?url=' + encodeURIComponent(u) },
+  { name: 'allorigins.win', build: (u) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) },
+  { name: 'codetabs',       build: (u) => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u) },
+];
+
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`${label || 'request'} timed out after ${ms}ms`)), ms)
+    ),
+  ]);
+}
+
+/**
+ * Fetch a URL via the user-selected proxy first, then fall back through PROXY_CHAIN
+ * if that fails. Returns text. No AbortSignal — uses Promise.race for timeout
+ * so it works in restricted browser environments (extensions, sandboxed iframes).
+ *
+ * preferredProxyPrefix:
+ *   undefined         → walk the full public-proxy chain
+ *   ''                → try direct fetch first, then fall back
+ *   'WORKER:<url>'    → use the user's Cloudflare worker as the FIRST and ONLY attempt
+ *                       (no fallback — if their worker fails we want them to know)
+ *   '<prefix>'        → use that as preferred, then fall back through chain
+ */
+async function fetchViaProxy(url, preferredProxyPrefix) {
+  const strategies = [];
+
+  if (typeof preferredProxyPrefix === 'string' && preferredProxyPrefix.startsWith('WORKER:')) {
+    const workerBase = preferredProxyPrefix.slice('WORKER:'.length).replace(/\/+$/, '');
+    strategies.push({
+      name: 'worker',
+      target: workerBase + '/?url=' + encodeURIComponent(url),
+    });
+    // Intentionally NO fallback — if the user has set up a worker, we want errors to surface,
+    // not silently fall through to (degraded) public proxies.
+  } else if (preferredProxyPrefix === '') {
+    strategies.push({ name: 'direct', target: url });
+    for (const p of PROXY_CHAIN) {
+      strategies.push({ name: p.name, target: p.build(url) });
+    }
+  } else if (preferredProxyPrefix) {
+    strategies.push({ name: 'preferred', target: preferredProxyPrefix + encodeURIComponent(url) });
+    for (const p of PROXY_CHAIN) {
+      const target = p.build(url);
+      if (!strategies.some(s => s.target === target)) {
+        strategies.push({ name: p.name, target });
+      }
+    }
+  } else {
+    // 'auto' — full chain, no preferred entry
+    for (const p of PROXY_CHAIN) {
+      strategies.push({ name: p.name, target: p.build(url) });
+    }
+  }
+
+  let lastErr;
+  for (const s of strategies) {
+    try {
+      const resp = await withTimeout(
+        fetch(s.target, { redirect: 'follow', credentials: 'omit', cache: 'no-store' }),
+        20000,
+        s.name
+      );
+      if (!resp.ok) {
+        lastErr = new Error(`${s.name}: HTTP ${resp.status}`);
+        continue;
+      }
+      const text = await withTimeout(resp.text(), 15000, s.name + ' read');
+      if (!text || text.length < 50) {
+        lastErr = new Error(`${s.name}: empty response`);
+        continue;
+      }
+      return text;
+    } catch (e) {
+      lastErr = new Error(`${s.name}: ${e.message || e}`);
+    }
+  }
+  throw lastErr || new Error('All fetch strategies failed.');
+}
+
+function extractLinksFromHtml(html, baseUrl) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const out = [];
+  doc.querySelectorAll('a[href]').forEach(a => {
+    const href = a.getAttribute('href');
+    if (!href) return;
+    if (href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) return;
+    const u = absUrl(href, baseUrl);
+    if (!u) return;
+    if (!sameDomain(u, baseUrl)) return;
+    out.push({ url: u.split('#')[0], text: (a.textContent || '').trim().slice(0, 120) });
+  });
+  return out;
+}
+
+function extractTextFromHtml(html, sourceUrl) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  // Strip noise
+  doc.querySelectorAll('script, style, noscript, svg, iframe, nav[aria-label*="cookie" i]').forEach(n => n.remove());
+  // Prefer main / article
+  const root = doc.querySelector('main') || doc.querySelector('article') || doc.body || doc.documentElement;
+  if (!root) return { title: '', text: '' };
+  const title = (doc.querySelector('title')?.textContent || '').trim();
+  const meta  = (doc.querySelector('meta[name="description"]')?.getAttribute('content') || '').trim();
+  let text = root.innerText || root.textContent || '';
+  text = text.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+  if (text.length > 8000) text = text.slice(0, 8000) + '\n…[truncated]';
+  return { title, meta, text };
+}
+
+async function tryFetchSitemap(baseUrl, proxy) {
+  const candidates = [
+    new URL('/sitemap.xml', baseUrl).toString(),
+    new URL('/sitemap_index.xml', baseUrl).toString(),
+    new URL('/robots.txt', baseUrl).toString(),
+  ];
+  const urls = new Set();
+  for (const c of candidates) {
+    try {
+      const txt = await fetchViaProxy(c, proxy);
+      if (c.endsWith('robots.txt')) {
+        const matches = txt.match(/Sitemap:\s*(\S+)/gi) || [];
+        for (const m of matches) {
+          const s = m.replace(/Sitemap:\s*/i, '').trim();
+          try {
+            const sm = await fetchViaProxy(s, proxy);
+            (sm.match(/<loc>([^<]+)<\/loc>/g) || []).forEach(loc => {
+              const u = loc.replace(/<\/?loc>/g, '').trim();
+              if (sameDomain(u, baseUrl)) urls.add(u);
+            });
+          } catch {}
+        }
+      } else {
+        (txt.match(/<loc>([^<]+)<\/loc>/g) || []).forEach(loc => {
+          const u = loc.replace(/<\/?loc>/g, '').trim();
+          if (sameDomain(u, baseUrl)) urls.add(u);
+        });
+      }
+    } catch {}
+    if (urls.size > 0) break;
+  }
+  return [...urls];
+}
+
+async function discoverAndFetchPages(startUrl, maxPages, proxy) {
+  logLine(`<span class="dim">→</span> fetching homepage <span class="url">${startUrl}</span>`, 'info');
+  let homeHtml;
+  try {
+    homeHtml = await fetchViaProxy(startUrl, proxy);
+    logLine(`<span class="ok">✓</span> homepage fetched (${homeHtml.length.toLocaleString()} chars)`, 'ok');
+  } catch (e) {
+    logLine(`<span class="err">✗</span> failed to fetch homepage: ${e.message}`, 'err');
+    const usingWorker = typeof proxy === 'string' && proxy.startsWith('WORKER:');
+    if (usingWorker) {
+      throw new Error(`Could not fetch ${startUrl}. Last error: ${e.message}. Check that your Worker URL is correct and the Worker is deployed (visit it in a browser — it should say "agent-discovery proxy is alive"). If the Worker is fine and the upstream returned an error code, the target site may be blocking automated access; try the "Paste content" tab.`);
+    }
+    throw new Error(`Could not fetch ${startUrl}. All public CORS proxies failed (last error: ${e.message}). Public proxies are unreliable in 2026 — set up your own Cloudflare Worker (see README) for a stable solution. Or use the "Paste content" tab.`);
+  }
+
+  // Score links from homepage
+  const homeLinks = extractLinksFromHtml(homeHtml, startUrl);
+  logLine(`<span class="dim">→</span> found ${homeLinks.length} same-domain links on homepage`, 'dim');
+
+  // Try sitemap
+  let sitemapUrls = [];
+  try {
+    sitemapUrls = await tryFetchSitemap(startUrl, proxy);
+    if (sitemapUrls.length > 0) {
+      logLine(`<span class="ok">✓</span> sitemap returned ${sitemapUrls.length} URLs`, 'ok');
+    } else {
+      logLine(`<span class="dim">·</span> no sitemap found`, 'dim');
+    }
+  } catch {}
+
+  // Combine and rank
+  const candidates = new Map(); // url -> {url, text, score}
+  homeLinks.forEach(l => {
+    const score = scoreLink(l.url, l.text);
+    candidates.set(l.url, { url: l.url, text: l.text, score });
+  });
+  sitemapUrls.forEach(u => {
+    if (candidates.has(u)) return;
+    candidates.set(u, { url: u, text: '', score: scoreLink(u, '') });
+  });
+
+  // Drop the start URL (we already have it) and obvious duplicates
+  candidates.delete(startUrl);
+  candidates.delete(startUrl.replace(/\/$/, ''));
+  candidates.delete(startUrl + '/');
+
+  const ranked = [...candidates.values()]
+    .filter(c => c.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, Math.max(0, maxPages - 1));
+
+  logLine(`<span class="dim">→</span> ${ranked.length} support-relevant pages selected for fetching`, 'dim');
+
+  // Fetch them
+  const pages = [];
+  pages.push({
+    url: startUrl,
+    ...extractTextFromHtml(homeHtml, startUrl)
+  });
+
+  for (const c of ranked) {
+    try {
+      logLine(`<span class="dim">→</span> <span class="url">${c.url}</span>`, 'dim');
+      const html = await fetchViaProxy(c.url, proxy);
+      const ext = extractTextFromHtml(html, c.url);
+      if (ext.text.length > 200) {
+        pages.push({ url: c.url, ...ext });
+        logLine(`<span class="ok">✓</span> ${ext.text.length.toLocaleString()} chars of text`, 'ok');
+      } else {
+        logLine(`<span class="dim">·</span> too little text, skipping`, 'dim');
+      }
+    } catch (e) {
+      logLine(`<span class="err">✗</span> ${e.message}`, 'err');
+    }
+  }
+  return pages;
+}
+
+/* ----------------------------------------------------------
+   2. LLM call
+   ---------------------------------------------------------- */
+
+function buildPrompt(pages, langHint, sourceHint) {
+  const langLine = langHint && langHint !== 'auto'
+    ? `Output the agent names and descriptions in: ${langHint}.`
+    : `Output the agent names and descriptions in the same language as the source content (auto-detect).`;
+
+  const corpus = pages.map((p, i) =>
+    `--- PAGE ${i+1} ---\nURL: ${p.url}\nTITLE: ${p.title || '(no title)'}\n${p.meta ? 'META: ' + p.meta + '\n' : ''}\n${p.text}`
+  ).join('\n\n');
+
+  return `You are designing the conversational AI agent hierarchy that a virtual assistant on this website would need.
+
+Source: ${sourceHint}
+${langLine}
+
+Read the content below and propose a clean hierarchy of CATEGORIES → AGENTS that this site's chatbot should have. Be GROUNDED — only propose agents that are clearly supported by topics actually present in the content. Do not invent agents for things the site does not appear to offer. If the content is thin, propose fewer agents rather than padding.
+
+Guidelines:
+- 2 to 6 categories. Each category groups related agents.
+- 2 to 5 agents per category. An "agent" handles a coherent set of related questions/tasks (e.g. "Subscription terms", "Technical support — internet", "Billing and invoices").
+- Agent NAMES should be short noun phrases (2–5 words), in the source language.
+- Agent DESCRIPTIONS should be 1–2 sentences explaining what the agent handles, plus a 2–5 item bulleted scope of the topics it covers.
+- For each agent, list the 1–3 source URLs (from the PAGE list above) that justify it.
+- Avoid generic agents like "General questions" unless the site genuinely warrants one.
+
+Return ONLY valid JSON, no commentary, in exactly this shape:
+
+{
+  "site_summary": "1–2 sentence factual summary of what this site/organization does, in English.",
+  "detected_language": "ISO 639-1 code, e.g. 'da', 'en'",
+  "categories": [
+    {
+      "name": "Category name",
+      "agents": [
+        {
+          "name": "Agent name",
+          "description": "1–2 sentence description.",
+          "scope": ["topic 1", "topic 2", "topic 3"],
+          "source_urls": ["https://..."]
+        }
+      ]
+    }
+  ]
+}
+
+CONTENT:
+
+${corpus}`;
+}
+
+async function callClaude(apiKey, model, prompt) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: model,
+      max_tokens: 4000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!resp.ok) {
+    const errText = await resp.text();
+    let msg = `HTTP ${resp.status}`;
+    try { const j = JSON.parse(errText); msg = j.error?.message || msg; } catch {}
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  const text = (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n').trim();
+  return text;
+}
+
+function extractJson(text) {
+  // Strip markdown fences
+  let t = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+  // Find outermost {...}
+  const start = t.indexOf('{');
+  const end = t.lastIndexOf('}');
+  if (start === -1 || end === -1) throw new Error('No JSON object in model response.');
+  return JSON.parse(t.slice(start, end + 1));
+}
+
+/* ----------------------------------------------------------
+   3. Render
+   ---------------------------------------------------------- */
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderResult(result, sourceHint) {
+  const out = $('output');
+  if (!result.categories || result.categories.length === 0) {
+    out.innerHTML = '<div class="empty">The model did not return any agents.</div>';
+    return;
+  }
+
+  let html = `
+    <div class="output-header">
+      <div>
+        <p class="section-label"><span class="num">02</span> Result · ${escapeHtml(sourceHint)}</p>
+        <h2 class="output-title">Agent <em>hierarchy</em></h2>
+        ${result.site_summary ? `<p style="font-family: var(--serif); font-size: 16px; color: var(--ink-soft); max-width: 60ch; margin: 6px 0 0;">${escapeHtml(result.site_summary)}</p>` : ''}
+      </div>
+      <div class="output-actions">
+        <button class="btn ghost" id="copyJson">Copy JSON</button>
+        <button class="btn ghost" id="copyMd">Copy Markdown</button>
+        <button class="btn ghost" id="downloadJson">Download .json</button>
+      </div>
+    </div>
+  `;
+
+  result.categories.forEach((cat, i) => {
+    const agentCount = (cat.agents || []).length;
+    html += `
+      <div class="category">
+        <div class="category-rule">
+          <h3 class="category-name">${escapeHtml(cat.name || `Category ${i+1}`)}</h3>
+          <span class="category-count">${agentCount} agent${agentCount === 1 ? '' : 's'}</span>
+        </div>
+        <div class="agents">
+          ${(cat.agents || []).map(a => `
+            <div class="agent">
+              <h4 class="agent-name">${escapeHtml(a.name || 'Untitled agent')}</h4>
+              <p class="agent-desc">${escapeHtml(a.description || '')}</p>
+              ${(a.scope && a.scope.length) ? `<ul class="agent-scope">${a.scope.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ul>` : ''}
+              ${(a.source_urls && a.source_urls.length) ? `
+                <div class="agent-sources">
+                  Sources:
+                  ${a.source_urls.map(u => `<a href="${escapeHtml(u)}" target="_blank" rel="noopener noreferrer">${escapeHtml(u.replace(/^https?:\/\//,''))}</a>`).join('')}
+                </div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  });
+
+  out.innerHTML = html;
+
+  $('copyJson').addEventListener('click', () => {
+    navigator.clipboard.writeText(JSON.stringify(result, null, 2));
+    $('copyJson').textContent = 'Copied ✓';
+    setTimeout(() => $('copyJson').textContent = 'Copy JSON', 1500);
+  });
+  $('copyMd').addEventListener('click', () => {
+    navigator.clipboard.writeText(toMarkdown(result, sourceHint));
+    $('copyMd').textContent = 'Copied ✓';
+    setTimeout(() => $('copyMd').textContent = 'Copy Markdown', 1500);
+  });
+  $('downloadJson').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `agents-${(sourceHint || 'export').replace(/[^a-z0-9]+/gi, '-')}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
+function toMarkdown(result, sourceHint) {
+  let md = `# Agent hierarchy — ${sourceHint}\n\n`;
+  if (result.site_summary) md += `> ${result.site_summary}\n\n`;
+  for (const cat of result.categories || []) {
+    md += `## ${cat.name}\n\n`;
+    for (const a of cat.agents || []) {
+      md += `### ${a.name}\n\n${a.description || ''}\n\n`;
+      if (a.scope && a.scope.length) {
+        for (const s of a.scope) md += `- ${s}\n`;
+        md += '\n';
+      }
+      if (a.source_urls && a.source_urls.length) {
+        md += `*Sources: ${a.source_urls.join(', ')}*\n\n`;
+      }
+    }
+  }
+  return md;
+}
+
+/* ----------------------------------------------------------
+   4. Main run
+   ---------------------------------------------------------- */
+
+async function run() {
+  clearLog();
+  const apiKey = $('apiKey').value.trim();
+  if (!apiKey) { logLine('<span class="err">✗ API key is required.</span>', 'err'); return; }
+
+  const activeTab = document.querySelector('.tab.active').dataset.tab;
+  const langHint = $('langHint').value;
+  const proxyChoice = $('corsProxy').value;
+
+  // Resolve the proxy choice into a value fetchViaProxy understands:
+  //   'worker' + workerUrl present → 'WORKER:<url>'
+  //   'auto'                       → undefined (walks full chain)
+  //   ''                           → '' (direct first, then fallback)
+  //   else                         → that prefix string
+  let proxy;
+  if (proxyChoice === 'worker') {
+    const w = ($('workerUrl').value || '').trim();
+    if (!w) {
+      logLine('<span class="err">✗ Cloudflare Worker selected but no Worker URL was set. Paste it in the Worker URL field, or pick a different proxy option.</span>', 'err');
+      return;
+    }
+    try { new URL(w); } catch {
+      logLine('<span class="err">✗ Worker URL is not a valid URL.</span>', 'err');
+      return;
+    }
+    proxy = 'WORKER:' + w;
+  } else if (proxyChoice === 'auto') {
+    proxy = undefined;
+  } else {
+    proxy = proxyChoice;
+  }
+
+  const model = $('model').value;
+  const maxPages = Math.max(1, Math.min(12, parseInt($('maxPages').value, 10) || 6));
+
+  let pages = [];
+  let sourceHint = '';
+
+  setRunning(true);
+  try {
+    if (activeTab === 'url') {
+      let url = $('targetUrl').value.trim();
+      if (!url) throw new Error('URL is required.');
+      if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+      try { new URL(url); } catch { throw new Error('Not a valid URL.'); }
+      sourceHint = new URL(url).hostname;
+      logLine(`<span class="info">▸ Discovery starting for ${sourceHint}</span>`, 'info');
+      pages = await discoverAndFetchPages(url, maxPages, proxy);
+      if (pages.length === 0) throw new Error('No pages could be fetched.');
+      logLine(`<span class="ok">✓ ${pages.length} page(s) collected, total ${pages.reduce((s,p)=>s+p.text.length,0).toLocaleString()} chars</span>`, 'ok');
+    } else {
+      const txt = $('pastedContent').value.trim();
+      if (!txt) throw new Error('Paste some content first.');
+      pages = [{ url: '(pasted content)', title: '', meta: '', text: txt.slice(0, 30000) }];
+      sourceHint = 'pasted content';
+      logLine(`<span class="ok">✓ ${txt.length.toLocaleString()} chars of pasted content</span>`, 'ok');
+    }
+
+    logLine(`<span class="info">▸ Calling Claude (${model})...</span>`, 'info');
+    const prompt = buildPrompt(pages, langHint, sourceHint);
+    const responseText = await callClaude(apiKey, model, prompt);
+    logLine(`<span class="ok">✓ Response received (${responseText.length.toLocaleString()} chars)</span>`, 'ok');
+
+    let result;
+    try {
+      result = extractJson(responseText);
+    } catch (e) {
+      logLine(`<span class="err">✗ Failed to parse JSON: ${e.message}</span>`, 'err');
+      logLine(`<span class="dim">Raw response (first 500 chars):</span>`, 'dim');
+      logLine(`<span class="dim">${escapeHtml(responseText.slice(0, 500))}</span>`, 'dim');
+      throw new Error('Model returned non-JSON output.');
+    }
+
+    renderResult(result, sourceHint);
+    logLine(`<span class="ok">✓ Done.</span>`, 'ok');
+  } catch (e) {
+    logLine(`<span class="err">✗ ${e.message}</span>`, 'err');
+  } finally {
+    setRunning(false);
+  }
+}
+
+function setRunning(running) {
+  const btn = $('runBtn');
+  btn.disabled = running;
+  $('runLabel').innerHTML = running
+    ? '<span class="spinner"></span> Working…'
+    : 'Discover agents';
+}
+
+$('runBtn').addEventListener('click', run);
+
+/* Enter to submit on URL field */
+$('targetUrl').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); run(); }
+});
+</script>
+</body>
+</html>
