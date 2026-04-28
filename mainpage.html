@@ -1,71 +1,795 @@
-<html>
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <style>
-      *, *::before, *::after { box-sizing: border-box; }
-      html, body { margin: 0; padding: 0; }
-      img, video, svg, canvas { max-width: 100%; height: auto; }
-      body { -webkit-text-size-adjust: 100%; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LLM Hallucination Checker</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --panel-2: #1f242e;
+    --border: #2a313d;
+    --text: #e6e9ef;
+    --muted: #9aa3b2;
+    --accent: #7c9cff;
+    --accent-2: #5b7cff;
+    --danger: #ff6b6b;
+    --warn: #ffb86b;
+    --ok: #5cd6a0;
+    --highlight-bg: rgba(255, 107, 107, 0.22);
+    --highlight-border: rgba(255, 107, 107, 0.6);
+    --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  header {
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  header h1 { font-size: 18px; margin: 0; font-weight: 600; }
+  header .sub { color: var(--muted); font-size: 13px; }
+  .header-controls {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+  }
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .control-group label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  select, .key-area input {
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  select { min-width: 220px; }
+  .key-area input { width: 320px; }
+  select:focus, .key-area input:focus { outline: none; border-color: var(--accent); }
+  .key-area button { padding: 6px 12px; font-size: 12px; }
+  .key-status {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+  .key-status.set { color: var(--ok); }
+  .key-status.unset { color: var(--warn); }
+  main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px 28px 80px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 980px) {
+    main { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .panel h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 0 0 10px;
+    font-weight: 600;
+  }
+  textarea {
+    width: 100%;
+    min-height: 280px;
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    resize: vertical;
+  }
+  textarea:focus { outline: none; border-color: var(--accent); }
+  .controls {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  button {
+    background: var(--accent);
+    color: #0b0d12;
+    border: 0;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  button:hover { background: var(--accent-2); color: white; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  button.secondary:hover { background: var(--panel-2); color: var(--text); }
+  .status { color: var(--muted); font-size: 13px; }
+  .results {
+    grid-column: 1 / -1;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+  }
+  .summary {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .badge strong { color: var(--text); }
+  .badge.ok { border-color: var(--ok); }
+  .badge.ok strong { color: var(--ok); }
+  .badge.danger { border-color: var(--danger); }
+  .badge.danger strong { color: var(--danger); }
 
-      .klara-chat-trigger {
-        background: none;
-        border: none;
-        cursor: pointer;
-        outline: none;
-        padding: 0;
-        position: fixed;
-        bottom: 28px;
-        right: 28px;
-        border-radius: 50%;
-        box-shadow: 0px 6px 20px rgba(17, 137, 201, 0.55);
-        transition: transform 200ms ease, box-shadow 200ms ease, opacity 400ms ease;
-        z-index: 9999;
-        opacity: 1;
-      }
-      .klara-chat-trigger.is-hidden {
-        opacity: 0;
-        pointer-events: none;
-      }
-      .klara-chat-trigger:hover {
-        box-shadow: 0px 8px 28px rgba(17, 137, 201, 0.7);
-        transform: scale(1.06);
-      }
-      .klara-chat-trigger:active {
-        transform: scale(0.97);
-        box-shadow: 0px 4px 12px rgba(17, 137, 201, 0.5);
-      }
-      .klara-chat-trigger__icon {
-        width: 64px;
-        height: 64px;
-        border-radius: 50%;
-        object-fit: cover;
-        display: block;
-      }
-    </style>
-  </head>
-  <body>
+  .response-block {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: var(--mono);
+    font-size: 13px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-bottom: 18px;
+    line-height: 1.6;
+  }
+  .response-block mark {
+    background: var(--highlight-bg);
+    border-bottom: 2px solid var(--highlight-border);
+    color: var(--text);
+    padding: 1px 2px;
+    border-radius: 2px;
+  }
 
-    <button
-      aria-label="Åpne chat"
-      type="button"
-      class="klara-chat-trigger"
-      onclick="this.classList.add('is-hidden'); boost.chatPanel.show();"
-    >
-      <img
-        src="https://raw.githubusercontent.com/kboostj/skills-github-pages/refs/heads/main/Klara%20logo.jpg"
-        alt="Klara"
-        class="klara-chat-trigger__icon"
-      />
-    </button>
+  .finding {
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--danger);
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    background: var(--panel-2);
+  }
+  .finding-quote {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 8px;
+    margin: 6px 0;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .finding p { margin: 6px 0; font-size: 13.5px; }
+  .finding .label {
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+  }
+  .empty {
+    color: var(--muted);
+    font-size: 13.5px;
+    text-align: center;
+    padding: 30px 0;
+  }
+  .error {
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: var(--mono);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .hint {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  details {
+    margin-top: 16px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+  details summary { cursor: pointer; color: var(--muted); font-size: 12.5px; }
+  details pre {
+    margin: 10px 0 0;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--muted);
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 300px;
+    overflow: auto;
+  }
+  .notice {
+    grid-column: 1 / -1;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .notice strong { color: var(--text); }
+  .section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    font-weight: 600;
+    margin: 0 0 8px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-top">
+    <div>
+      <h1>LLM Hallucination Checker</h1>
+      <div class="sub">A hallucination guardrail fired. Paste the request and response to find which spans of the response are unsupported by the input.</div>
+    </div>
+  </div>
+  <div class="header-controls">
+    <div class="control-group">
+      <label for="modelSelect">Checker model</label>
+      <select id="modelSelect"></select>
+    </div>
+    <div class="control-group key-area">
+      <label for="apiKeyInput" id="apiKeyLabel">API key</label>
+      <input id="apiKeyInput" type="password" placeholder="sk-..." autocomplete="off" spellcheck="false" />
+      <button id="saveKeyBtn" class="secondary">Save key</button>
+      <button id="clearKeyBtn" class="secondary">Clear</button>
+      <span class="key-status" id="keyStatus">No key</span>
+    </div>
+  </div>
+</header>
 
-    <script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
-    <script>
-      var boost = window.boostInit("daedalus");
+<main>
+  <div class="notice">
+    <strong>Definition used:</strong> A hallucination is any claim in the response — fact, name, number, URL, identifier, attribute, relationship, or quantitative detail — that is not directly supported by the request payload (system prompt, conversation history, or tool definitions). Real-world plausibility is irrelevant. If it is not in the input, it is a hallucination.
+  </div>
 
-      boost.chatPanel.addEventListener("chatPanelClosed", function () {
-        document.querySelector(".klara-chat-trigger").classList.remove("is-hidden");
-      });
-    </script>
+  <section class="panel">
+    <h2>Request payload</h2>
+    <textarea id="requestInput" placeholder='Paste the full request payload (JSON), e.g. { "messages": [...], "model": "..." }'></textarea>
+    <div class="hint">Everything the model was given as input: system prompt, conversation history, tool/function definitions.</div>
+  </section>
 
-  </body>
+  <section class="panel">
+    <h2>Response payload</h2>
+    <textarea id="responseInput" placeholder='Paste the full response payload (JSON), e.g. { "choices": [{ "message": { "content": "..." } }] }'></textarea>
+    <div class="hint">The model's reply object — the assistant content will be extracted automatically.</div>
+  </section>
+
+  <section class="controls">
+    <button id="checkBtn">Find hallucinated spans</button>
+    <button id="clearBtn" class="secondary">Clear payloads</button>
+    <span class="status" id="status"></span>
+  </section>
+
+  <section class="results" id="results">
+    <div class="empty">Findings will appear here after analysis.</div>
+  </section>
+</main>
+
+<script>
+  // ---------- Model catalog ----------
+
+  const MODELS = [
+    { id: "claude-opus-4-7",     label: "Claude Opus 4.7",   provider: "anthropic" },
+    { id: "claude-opus-4-6",     label: "Claude Opus 4.6",   provider: "anthropic" },
+    { id: "claude-sonnet-4-6",   label: "Claude Sonnet 4.6", provider: "anthropic" },
+    { id: "claude-haiku-4-5",    label: "Claude Haiku 4.5",  provider: "anthropic" },
+    { id: "gpt-4o",              label: "GPT-4o",            provider: "openai" },
+    { id: "gpt-4o-mini",         label: "GPT-4o mini",       provider: "openai" },
+    { id: "gpt-4.1",             label: "GPT-4.1",           provider: "openai" },
+    { id: "gpt-4.1-mini",        label: "GPT-4.1 mini",      provider: "openai" }
+  ];
+
+  const STORAGE_KEYS = {
+    anthropic: "anthropic_api_key_v1",
+    openai: "openai_api_key_v1",
+    selectedModel: "checker_selected_model_v1"
+  };
+
+  const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
+  const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+
+  // ---------- DOM ----------
+
+  const modelSelect = document.getElementById("modelSelect");
+  const apiKeyInput = document.getElementById("apiKeyInput");
+  const apiKeyLabel = document.getElementById("apiKeyLabel");
+  const saveKeyBtn = document.getElementById("saveKeyBtn");
+  const clearKeyBtn = document.getElementById("clearKeyBtn");
+  const keyStatus = document.getElementById("keyStatus");
+
+  const requestInput = document.getElementById("requestInput");
+  const responseInput = document.getElementById("responseInput");
+  const checkBtn = document.getElementById("checkBtn");
+  const clearBtn = document.getElementById("clearBtn");
+  const statusEl = document.getElementById("status");
+  const resultsEl = document.getElementById("results");
+
+  // ---------- Populate model selector ----------
+
+  function populateModelSelect() {
+    modelSelect.innerHTML = "";
+    const groups = {
+      anthropic: { label: "Anthropic", models: [] },
+      openai: { label: "OpenAI", models: [] }
+    };
+    for (const m of MODELS) groups[m.provider].models.push(m);
+
+    for (const key of ["anthropic", "openai"]) {
+      const og = document.createElement("optgroup");
+      og.label = groups[key].label;
+      for (const m of groups[key].models) {
+        const opt = document.createElement("option");
+        opt.value = m.id;
+        opt.textContent = m.label;
+        opt.dataset.provider = m.provider;
+        og.appendChild(opt);
+      }
+      modelSelect.appendChild(og);
+    }
+
+    const stored = localStorage.getItem(STORAGE_KEYS.selectedModel);
+    if (stored && MODELS.some(m => m.id === stored)) {
+      modelSelect.value = stored;
+    } else {
+      modelSelect.value = MODELS[0].id;
+    }
+  }
+
+  function getSelectedModel() {
+    const id = modelSelect.value;
+    return MODELS.find(m => m.id === id) || MODELS[0];
+  }
+
+  modelSelect.addEventListener("change", () => {
+    localStorage.setItem(STORAGE_KEYS.selectedModel, modelSelect.value);
+    refreshKeyArea();
+  });
+
+  // ---------- API key handling (per provider) ----------
+
+  function getStoredKey(provider) {
+    try { return localStorage.getItem(STORAGE_KEYS[provider]) || ""; }
+    catch (_) { return ""; }
+  }
+  function setStoredKey(provider, k) {
+    try { localStorage.setItem(STORAGE_KEYS[provider], k); } catch (_) {}
+  }
+  function clearStoredKey(provider) {
+    try { localStorage.removeItem(STORAGE_KEYS[provider]); } catch (_) {}
+  }
+  function maskKey(k) {
+    if (!k) return "";
+    if (k.length <= 10) return "•".repeat(k.length);
+    return k.slice(0, 6) + "…" + k.slice(-4);
+  }
+
+  function refreshKeyArea() {
+    const m = getSelectedModel();
+    const k = getStoredKey(m.provider);
+    const providerLabel = m.provider === "anthropic" ? "Anthropic" : "OpenAI";
+    apiKeyLabel.textContent = providerLabel + " key";
+    if (k) {
+      keyStatus.textContent = "Saved: " + maskKey(k);
+      keyStatus.className = "key-status set";
+      apiKeyInput.placeholder = maskKey(k);
+    } else {
+      keyStatus.textContent = "No key";
+      keyStatus.className = "key-status unset";
+      apiKeyInput.placeholder = m.provider === "anthropic" ? "sk-ant-..." : "sk-...";
+    }
+    apiKeyInput.value = "";
+  }
+
+  saveKeyBtn.addEventListener("click", () => {
+    const v = apiKeyInput.value.trim();
+    if (!v) { statusEl.textContent = "Enter a key first."; return; }
+    const m = getSelectedModel();
+    setStoredKey(m.provider, v);
+    statusEl.textContent = "Key saved for " + (m.provider === "anthropic" ? "Anthropic" : "OpenAI") + ".";
+    refreshKeyArea();
+  });
+
+  clearKeyBtn.addEventListener("click", () => {
+    const m = getSelectedModel();
+    clearStoredKey(m.provider);
+    statusEl.textContent = "Key cleared for " + (m.provider === "anthropic" ? "Anthropic" : "OpenAI") + ".";
+    refreshKeyArea();
+  });
+
+  apiKeyInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") saveKeyBtn.click();
+  });
+
+  // ---------- Clear / run handlers ----------
+
+  clearBtn.addEventListener("click", () => {
+    requestInput.value = "";
+    responseInput.value = "";
+    statusEl.textContent = "";
+    resultsEl.innerHTML = '<div class="empty">Findings will appear here after analysis.</div>';
+  });
+
+  checkBtn.addEventListener("click", runCheck);
+
+  // ---------- Helpers ----------
+
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function tryParse(label, raw) {
+    try { return { ok: true, value: JSON.parse(raw) }; }
+    catch (e) { return { ok: false, error: `${label} is not valid JSON: ${e.message}` }; }
+  }
+
+  // Pull the assistant content out of common response shapes.
+  function extractAssistantContent(responseObj) {
+    // OpenAI Chat Completions
+    const oai = responseObj?.choices?.[0]?.message?.content;
+    if (typeof oai === "string" && oai.length) return oai;
+
+    // Anthropic Messages
+    const anth = responseObj?.content;
+    if (Array.isArray(anth)) {
+      const txt = anth.filter(b => b?.type === "text").map(b => b.text).join("\n");
+      if (txt) return txt;
+    }
+
+    // Generic fallback
+    if (typeof responseObj?.content === "string") return responseObj.content;
+    if (typeof responseObj?.message === "string") return responseObj.message;
+    return null;
+  }
+
+  function buildCheckerPrompt(requestObj, responseObj, assistantContent) {
+    return `You are a hallucination detector. The user is investigating a response that triggered a hallucination guardrail. Your only job is to identify which spans of the assistant's response are hallucinated.
+
+DEFINITION OF HALLUCINATION (use this definition exactly):
+A hallucination is any claim, fact, name, number, identifier, URL, attribute, relationship, quantity, or specific detail in the assistant's response that is NOT directly supported by content in the REQUEST payload (system prompt, conversation history, or tool/function definitions).
+
+Real-world truth is IRRELEVANT. A statement that is factually correct in the real world is still a hallucination if it is not present in or directly entailed by the request payload. Do not use any outside knowledge to "vouch for" a claim.
+
+WHAT IS NOT A HALLUCINATION:
+- Greetings, acknowledgments, conversational filler, language choice, and politeness ("Hello", "How can I help you?", "Sure"). These do not assert facts.
+- Trivial logical entailments of the conversation (e.g. answering "yes" to a yes/no question, restating the user's own input).
+- Translations of content that is in the input.
+- Generic offers to help that contain no specific factual claim.
+- ANONYMIZATION PLACEHOLDERS in angle brackets such as <number>, <name>, <email>, <address>, <date>, <amount>, <id>, <ORDER_NUMBER>, etc. These are intentional stand-ins for real values that existed in the original conversation and were redacted before being sent to the model. Treat any token matching the pattern <...> (angle brackets surrounding a short identifier-like word, in any case) as a legitimate placeholder, NOT as a hallucinated value. The model echoing such a placeholder in its response is expected behavior. This rule applies ONLY to angle-bracket placeholders — square brackets, curly braces, and other delimiters do not get this exemption.
+
+WHAT IS A HALLUCINATION:
+- Any specific value (phone number, address, name, ID, price, date, URL, product name, status) that is not present in the request payload.
+- Any specific attribute or relationship attributed to an entity that is not stated in the request payload.
+- Any value that came from a TEMPLATE EXAMPLE in the system prompt and was used as if it were real data. Example values in templates are illustrative — using them in a real reply means the model invented data by copying the placeholder. Treat this as a hallucination.
+
+OUTPUT FORMAT — return STRICT JSON, no prose, no markdown fences:
+
+{
+  "is_hallucinated": true | false,
+  "summary": "one short sentence: what was hallucinated, or 'No hallucinated spans found.'",
+  "hallucinated_spans": [
+    {
+      "quote": "the exact substring copied verbatim from the assistant's response",
+      "why": "one sentence explaining what specific claim is unsupported and why the request payload does not support it"
+    }
+  ]
+}
+
+CRITICAL RULES FOR THE "quote" FIELD:
+- It MUST be an exact, character-for-character substring of the assistant's response shown below. Do not paraphrase, do not add ellipses, do not change punctuation or whitespace.
+- Quote the smallest span that captures the unsupported claim. Prefer short spans over long ones.
+- If multiple separate spans are hallucinated, emit one entry per span.
+- If nothing is hallucinated, return is_hallucinated=false and an empty hallucinated_spans array.
+
+=== REQUEST PAYLOAD ===
+${JSON.stringify(requestObj, null, 2)}
+
+=== ASSISTANT RESPONSE TO AUDIT ===
+${assistantContent}
+
+=== FULL RESPONSE PAYLOAD (for context) ===
+${JSON.stringify(responseObj, null, 2)}`;
+  }
+
+  // ---------- Provider calls ----------
+
+  async function callAnthropic(apiKey, modelId, prompt) {
+    const res = await fetch(ANTHROPIC_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: modelId,
+        max_tokens: 2000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Anthropic API ${res.status}: ${text}`);
+    }
+    const data = await res.json();
+    const textBlock = (data.content || []).find(b => b.type === "text");
+    if (!textBlock) throw new Error("No text content in Anthropic response.");
+    return textBlock.text;
+  }
+
+  async function callOpenAI(apiKey, modelId, prompt) {
+    const res = await fetch(OPENAI_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + apiKey
+      },
+      body: JSON.stringify({
+        model: modelId,
+        max_tokens: 2000,
+        messages: [
+          { role: "system", content: "You are a strict auditor. Return only the JSON object specified in the user message." },
+          { role: "user", content: prompt }
+        ]
+      })
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`OpenAI API ${res.status}: ${text}`);
+    }
+    const data = await res.json();
+    const content = data?.choices?.[0]?.message?.content;
+    if (!content) throw new Error("No content in OpenAI response.");
+    return content;
+  }
+
+  function extractJson(text) {
+    let t = String(text).trim();
+    t = t.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "");
+    try { return JSON.parse(t); } catch (_) {}
+    const first = t.indexOf("{");
+    const last = t.lastIndexOf("}");
+    if (first !== -1 && last !== -1 && last > first) {
+      const slice = t.slice(first, last + 1);
+      return JSON.parse(slice);
+    }
+    throw new Error("Could not parse JSON from model response.");
+  }
+
+  // Build an HTML version of the assistant content with hallucinated spans wrapped in <mark>.
+  // Only matches spans that exist verbatim in the content; mismatched quotes are skipped (and reported).
+  function highlightSpans(content, spans) {
+    const skipped = [];
+    // Find all match ranges first; then merge overlaps; then build HTML.
+    const ranges = [];
+    for (const s of spans) {
+      const q = s?.quote;
+      if (typeof q !== "string" || q.length === 0) {
+        skipped.push({ quote: q, reason: "Empty quote." });
+        continue;
+      }
+      const idx = content.indexOf(q);
+      if (idx === -1) {
+        skipped.push({ quote: q, reason: "Quote not found verbatim in response content." });
+        continue;
+      }
+      ranges.push({ start: idx, end: idx + q.length });
+    }
+    ranges.sort((a, b) => a.start - b.start);
+    const merged = [];
+    for (const r of ranges) {
+      if (merged.length && r.start <= merged[merged.length - 1].end) {
+        merged[merged.length - 1].end = Math.max(merged[merged.length - 1].end, r.end);
+      } else {
+        merged.push({ ...r });
+      }
+    }
+    let html = "";
+    let cursor = 0;
+    for (const r of merged) {
+      html += escapeHtml(content.slice(cursor, r.start));
+      html += "<mark>" + escapeHtml(content.slice(r.start, r.end)) + "</mark>";
+      cursor = r.end;
+    }
+    html += escapeHtml(content.slice(cursor));
+    return { html, skipped };
+  }
+
+  // ---------- Rendering ----------
+
+  function renderResults(analysis, assistantContent, rawText, modelLabel) {
+    const spans = Array.isArray(analysis.hallucinated_spans) ? analysis.hallucinated_spans : [];
+    const isHall = !!analysis.is_hallucinated && spans.length > 0;
+
+    const verdictBadgeClass = isHall ? "danger" : "ok";
+    const verdictText = isHall ? "Hallucinated" : "No hallucinated spans";
+
+    const { html: highlightedHtml, skipped } = highlightSpans(assistantContent, spans);
+
+    const summaryHtml = `
+      <div class="summary">
+        <span class="badge">Checker: <strong>${escapeHtml(modelLabel)}</strong></span>
+        <span class="badge ${verdictBadgeClass}">Verdict: <strong>${escapeHtml(verdictText)}</strong></span>
+        <span class="badge">Spans: <strong>${spans.length}</strong></span>
+      </div>
+      ${analysis.summary ? `<p style="margin: 0 0 18px; color: var(--muted); font-size: 14px;">${escapeHtml(analysis.summary)}</p>` : ""}
+    `;
+
+    const responseBlockHtml = `
+      <p class="section-label">Response (hallucinated spans highlighted)</p>
+      <div class="response-block">${highlightedHtml || '<span style="color: var(--muted)">[empty]</span>'}</div>
+    `;
+
+    const findingsHtml = spans.length === 0
+      ? `<div class="empty">No hallucinated spans found.</div>`
+      : `<p class="section-label">Findings</p>` + spans.map(s => `
+          <div class="finding">
+            <div class="finding-quote">${escapeHtml(s.quote || "")}</div>
+            ${s.why ? `<p><span class="label">Why:</span> ${escapeHtml(s.why)}</p>` : ""}
+          </div>
+        `).join("");
+
+    const skippedHtml = skipped.length === 0 ? "" : `
+      <details>
+        <summary>${skipped.length} span(s) could not be located verbatim in the response (not highlighted)</summary>
+        <pre>${escapeHtml(JSON.stringify(skipped, null, 2))}</pre>
+      </details>
+    `;
+
+    resultsEl.innerHTML = `
+      ${summaryHtml}
+      ${responseBlockHtml}
+      ${findingsHtml}
+      ${skippedHtml}
+      <details>
+        <summary>Raw model output</summary>
+        <pre>${escapeHtml(rawText)}</pre>
+      </details>
+    `;
+  }
+
+  function renderError(message) {
+    resultsEl.innerHTML = `<div class="error">${escapeHtml(message)}</div>`;
+  }
+
+  // ---------- Main ----------
+
+  async function runCheck() {
+    const m = getSelectedModel();
+    const apiKey = getStoredKey(m.provider);
+    if (!apiKey) {
+      renderError(`No ${m.provider === "anthropic" ? "Anthropic" : "OpenAI"} API key set. Paste your key in the field above and click Save key.`);
+      return;
+    }
+
+    const reqRaw = requestInput.value.trim();
+    const resRaw = responseInput.value.trim();
+    if (!reqRaw || !resRaw) {
+      renderError("Both request and response payloads are required.");
+      return;
+    }
+
+    const reqParsed = tryParse("Request", reqRaw);
+    if (!reqParsed.ok) { renderError(reqParsed.error); return; }
+    const resParsed = tryParse("Response", resRaw);
+    if (!resParsed.ok) { renderError(resParsed.error); return; }
+
+    const assistantContent = extractAssistantContent(resParsed.value);
+    if (!assistantContent) {
+      renderError("Could not find an assistant message in the response payload. Expected one of: choices[0].message.content (OpenAI) or content[].text (Anthropic).");
+      return;
+    }
+
+    checkBtn.disabled = true;
+    statusEl.textContent = `Analyzing with ${m.label}…`;
+    resultsEl.innerHTML = '<div class="empty">Analyzing…</div>';
+
+    try {
+      const prompt = buildCheckerPrompt(reqParsed.value, resParsed.value, assistantContent);
+      const raw = m.provider === "anthropic"
+        ? await callAnthropic(apiKey, m.id, prompt)
+        : await callOpenAI(apiKey, m.id, prompt);
+
+      let analysis;
+      try {
+        analysis = extractJson(raw);
+      } catch (e) {
+        renderError(`Model did not return valid JSON.\n\n${e.message}\n\nRaw output:\n${raw}`);
+        return;
+      }
+      renderResults(analysis, assistantContent, raw, m.label);
+      statusEl.textContent = "Done.";
+    } catch (e) {
+      renderError(e.message);
+      statusEl.textContent = "";
+    } finally {
+      checkBtn.disabled = false;
+    }
+  }
+
+  // ---------- Init ----------
+
+  populateModelSelect();
+  refreshKeyArea();
+</script>
+</body>
 </html>
