@@ -3,49 +3,66 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Agent Discovery — bootstrap a conversational AI hierarchy from any URL</title>
+<title>Agent Discovery — bootstrap a boost.ai agent hierarchy from any URL</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200;0,6..12,300;0,6..12,400;0,6..12,600;0,6..12,700;0,6..12,800;0,6..12,900;1,6..12,400;1,6..12,600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --paper:        #f4efe6;
-    --paper-deep:   #ece5d6;
-    --ink:          #14110f;
-    --ink-soft:     #3a342e;
-    --ink-mute:     #6b6258;
-    --rule:         #d9cfbb;
-    --signal:       #c8482a;
-    --signal-soft:  #e8c2b3;
-    --good:         #2f6f4f;
-    --bad:          #a23420;
-    --shadow:       0 1px 0 rgba(20,17,15,0.06), 0 8px 24px -12px rgba(20,17,15,0.18);
-    --serif:        'Fraunces', Georgia, serif;
-    --mono:         'JetBrains Mono', ui-monospace, Menlo, monospace;
-    --sans:         'Inter', system-ui, sans-serif;
+    /* Boost.ai brand palette */
+    --purple-dark:    #3e1241;
+    --purple:         #59195d;
+    --purple-light:   #8b5e8e;
+    --purple-lighter: #d1c7d2;
+    --purple-lightest:#f5eff6;
+
+    --teal-dark:      #208269;
+    --teal:           #36b595;
+    --teal-light:     #5fdcbd;
+    --teal-lighter:   #c5e4df;
+
+    --pink-dark:      #9c4b76;
+    --pink:           #e383b7;
+    --pink-light:     #fbaed7;
+    --pink-lighter:   #ffecf6;
+
+    --charcoal:       #1e1e1e;
+    --white:          #ffffff;
+    --light-grey:     #ececec;
+
+    /* Semantic mappings */
+    --bg:             var(--purple);
+    --bg-alt:         var(--purple-dark);
+    --surface:        var(--white);
+    --surface-soft:   var(--purple-lightest);
+    --text:           var(--charcoal);
+    --text-on-dark:   var(--white);
+    --text-mute:      #6b6258;
+    --rule:           var(--light-grey);
+    --rule-on-dark:   rgba(255,255,255,0.18);
+    --accent:         var(--teal);
+    --accent-soft:    var(--teal-lighter);
+    --accent-2:       var(--pink);
+    --accent-2-soft:  var(--pink-lighter);
+
+    --shadow:         0 2px 0 rgba(30,30,30,0.04), 0 12px 32px -16px rgba(62,18,65,0.25);
+    --shadow-lg:      0 4px 0 rgba(30,30,30,0.04), 0 24px 64px -24px rgba(62,18,65,0.40);
+
+    --font: 'Nunito Sans', system-ui, -apple-system, sans-serif;
   }
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body {
-    font-family: var(--sans);
-    background: var(--paper);
-    color: var(--ink);
+    font-family: var(--font);
+    font-weight: 400;
+    background: var(--bg);
+    color: var(--text-on-dark);
     -webkit-font-smoothing: antialiased;
-    background-image:
-      radial-gradient(circle at 12% 8%, rgba(200,72,42,0.05) 0, transparent 40%),
-      radial-gradient(circle at 88% 92%, rgba(20,17,15,0.04) 0, transparent 50%);
     min-height: 100vh;
-  }
-
-  /* Subtle paper grain */
-  body::before {
-    content: "";
-    position: fixed; inset: 0;
-    pointer-events: none;
-    opacity: 0.4;
-    z-index: 0;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.08  0 0 0 0 0.07  0 0 0 0 0.06  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    background-image:
+      radial-gradient(ellipse at 15% 0%, rgba(227,131,183,0.18) 0, transparent 45%),
+      radial-gradient(ellipse at 85% 100%, rgba(54,181,149,0.14) 0, transparent 50%);
   }
 
   .wrap {
@@ -56,133 +73,150 @@
     z-index: 1;
   }
 
-  /* Header */
+  /* ----- Masthead ----- */
   header.masthead {
     display: grid;
     grid-template-columns: 1fr auto;
-    align-items: end;
+    align-items: center;
     gap: 24px;
-    border-bottom: 1px solid var(--ink);
-    padding-bottom: 18px;
+    padding-bottom: 22px;
     margin-bottom: 12px;
+    border-bottom: 1px solid var(--rule-on-dark);
   }
   .brand {
-    font-family: var(--mono);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    color: var(--text-on-dark);
+  }
+  .brand-mark {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--teal);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    color: var(--purple);
+    font-size: 18px;
+    letter-spacing: -0.04em;
+  }
+  .brand .sub {
+    font-weight: 400;
+    color: rgba(255,255,255,0.72);
+    margin-left: 6px;
+  }
+  .meta {
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.65);
+    text-align: right;
+  }
+
+  /* ----- Hero ----- */
+  h1 {
+    font-weight: 900;
+    font-size: clamp(44px, 6.5vw, 84px);
+    line-height: 0.95;
+    letter-spacing: -0.025em;
+    margin: 32px 0 14px;
+    color: var(--text-on-dark);
+  }
+  h1 em {
+    font-style: normal;
+    color: var(--teal);
+  }
+  .lede {
+    font-weight: 400;
+    font-size: 19px;
+    line-height: 1.55;
+    color: rgba(255,255,255,0.85);
+    max-width: 64ch;
+    margin: 0 0 44px;
+  }
+
+  /* ----- Section labels ----- */
+  .section-label {
+    font-weight: 800;
     font-size: 11px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--ink-mute);
-  }
-  .brand b { color: var(--ink); font-weight: 600; }
-  .meta {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--ink-mute);
-    text-align: right;
-    letter-spacing: 0.04em;
-  }
-  h1 {
-    font-family: var(--serif);
-    font-weight: 400;
-    font-size: clamp(40px, 6vw, 76px);
-    line-height: 0.95;
-    letter-spacing: -0.025em;
-    margin: 24px 0 8px;
-    font-variation-settings: "opsz" 144;
-  }
-  h1 em {
-    font-style: italic;
-    color: var(--signal);
-    font-weight: 300;
-  }
-  .lede {
-    font-family: var(--serif);
-    font-size: 19px;
-    line-height: 1.5;
-    color: var(--ink-soft);
-    max-width: 64ch;
-    margin: 0 0 40px;
-    font-variation-settings: "opsz" 36;
-  }
-
-  /* Section labels */
-  .section-label {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--ink-mute);
+    color: var(--teal);
     display: flex;
     align-items: center;
     gap: 12px;
-    margin: 0 0 14px;
+    margin: 0 0 16px;
   }
   .section-label::before {
     content: "";
-    width: 18px; height: 1px;
-    background: var(--ink);
+    width: 22px; height: 2px;
+    background: var(--teal);
     display: inline-block;
   }
   .section-label .num {
-    color: var(--signal);
-    font-weight: 600;
+    color: var(--pink);
+    font-weight: 900;
   }
 
-  /* Form card */
+  /* ----- Panel (form card) ----- */
   .panel {
-    background: rgba(255,253,248,0.6);
-    border: 1px solid var(--rule);
-    border-radius: 2px;
-    padding: 28px;
-    box-shadow: var(--shadow);
-    margin-bottom: 28px;
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 18px;
+    padding: 32px;
+    box-shadow: var(--shadow-lg);
+    margin-bottom: 32px;
   }
 
-  .field {
-    display: block;
-    margin-bottom: 20px;
+  .panel .section-label {
+    color: var(--purple);
   }
+  .panel .section-label::before { background: var(--purple); }
+  .panel .section-label .num { color: var(--pink-dark); }
+
+  /* ----- Form fields ----- */
+  .field { display: block; margin-bottom: 22px; }
   .field:last-child { margin-bottom: 0; }
   .field label {
     display: block;
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-    margin-bottom: 6px;
+    font-weight: 800;
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 8px;
   }
   .field label .hint {
-    font-family: var(--sans);
-    text-transform: none;
-    letter-spacing: 0;
-    color: var(--ink-mute);
+    font-weight: 400;
+    color: var(--text-mute);
     margin-left: 8px;
     font-size: 12px;
   }
 
   input[type="text"], input[type="password"], input[type="url"], select, textarea {
     width: 100%;
-    border: 1px solid var(--rule);
-    background: #fffdf7;
-    padding: 12px 14px;
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--ink);
-    border-radius: 2px;
+    border: 1.5px solid var(--purple-lighter);
+    background: var(--white);
+    padding: 13px 16px;
+    font-family: var(--font);
+    font-weight: 400;
+    font-size: 14px;
+    color: var(--text);
+    border-radius: 10px;
     transition: border-color 0.15s, box-shadow 0.15s;
   }
   textarea {
-    font-family: var(--sans);
-    font-size: 14px;
-    min-height: 160px;
+    min-height: 180px;
     resize: vertical;
     line-height: 1.5;
   }
   input:focus, select:focus, textarea:focus {
     outline: none;
-    border-color: var(--ink);
-    box-shadow: 0 0 0 3px rgba(20,17,15,0.08);
+    border-color: var(--purple);
+    box-shadow: 0 0 0 4px var(--purple-lightest);
   }
 
   .row-2 {
@@ -192,64 +226,76 @@
   }
   @media (max-width: 720px) { .row-2 { grid-template-columns: 1fr; } }
 
-  /* Tabs */
+  /* ----- Tabs ----- */
   .tabs {
     display: flex;
     gap: 0;
-    border-bottom: 1px solid var(--rule);
-    margin-bottom: 22px;
+    border-bottom: 1.5px solid var(--rule);
+    margin-bottom: 24px;
   }
   .tab {
     background: none;
     border: none;
-    padding: 10px 18px 12px;
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.15em;
+    padding: 12px 20px 14px;
+    font-family: var(--font);
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--ink-mute);
+    color: var(--text-mute);
     cursor: pointer;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1.5px;
     transition: color 0.15s, border-color 0.15s;
   }
-  .tab:hover { color: var(--ink); }
+  .tab:hover { color: var(--purple); }
   .tab.active {
-    color: var(--ink);
-    border-bottom-color: var(--signal);
+    color: var(--purple);
+    border-bottom-color: var(--teal);
   }
 
-  /* Buttons */
+  /* ----- Buttons ----- */
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    padding: 14px 24px;
-    font-family: var(--mono);
-    font-size: 12px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    border: 1px solid var(--ink);
-    background: var(--ink);
-    color: var(--paper);
+    padding: 14px 26px;
+    font-family: var(--font);
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    border: 2px solid var(--purple);
+    background: var(--purple);
+    color: var(--white);
     cursor: pointer;
-    border-radius: 2px;
-    transition: transform 0.06s, background 0.15s;
-    font-weight: 500;
+    border-radius: 999px;
+    transition: transform 0.06s, background 0.15s, border-color 0.15s, color 0.15s;
   }
-  .btn:hover { background: var(--signal); border-color: var(--signal); }
+  .btn:hover {
+    background: var(--purple-dark);
+    border-color: var(--purple-dark);
+  }
   .btn:active { transform: translateY(1px); }
-  .btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: var(--ink);
-  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .btn.ghost {
     background: transparent;
-    color: var(--ink);
+    color: var(--purple);
   }
-  .btn.ghost:hover { background: var(--ink); color: var(--paper); }
+  .btn.ghost:hover {
+    background: var(--purple);
+    color: var(--white);
+  }
+  .btn.accent {
+    background: var(--teal);
+    border-color: var(--teal);
+    color: var(--purple-dark);
+  }
+  .btn.accent:hover {
+    background: var(--teal-dark);
+    border-color: var(--teal-dark);
+    color: var(--white);
+  }
   .btn-row {
     display: flex;
     gap: 12px;
@@ -257,83 +303,98 @@
     align-items: center;
   }
 
-  /* Status / log */
+  /* ----- Status / log ----- */
   .log {
-    font-family: var(--mono);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 12px;
     line-height: 1.7;
-    background: #1a1714;
-    color: #e8e0cf;
-    padding: 18px 20px;
-    border-radius: 2px;
+    background: var(--purple-dark);
+    color: rgba(255,255,255,0.85);
+    padding: 18px 22px;
+    border-radius: 10px;
     max-height: 280px;
     overflow-y: auto;
     margin-top: 18px;
-    border: 1px solid var(--ink);
   }
   .log .line { display: block; }
-  .log .ok    { color: #9bd5b1; }
-  .log .err   { color: #ef9a85; }
-  .log .info  { color: #f0d589; }
-  .log .dim   { color: #8a8275; }
+  .log .ok    { color: var(--teal-light); }
+  .log .err   { color: var(--pink-light); }
+  .log .info  { color: #ffd87a; }
+  .log .dim   { color: rgba(255,255,255,0.5); }
   .log .url   { color: #cfd8e3; word-break: break-all; }
 
-  /* Output */
+  /* ----- Output ----- */
   .output { margin-top: 36px; }
   .output-header {
     display: flex;
     justify-content: space-between;
     align-items: end;
-    border-bottom: 1px solid var(--ink);
-    padding-bottom: 16px;
-    margin-bottom: 32px;
+    border-bottom: 1.5px solid var(--rule-on-dark);
+    padding-bottom: 22px;
+    margin-bottom: 36px;
     gap: 20px;
     flex-wrap: wrap;
   }
   .output-title {
-    font-family: var(--serif);
-    font-size: 36px;
+    font-weight: 900;
+    font-size: 40px;
     letter-spacing: -0.02em;
     margin: 0;
-    font-weight: 400;
-    font-variation-settings: "opsz" 72;
+    line-height: 1.05;
+    color: var(--white);
   }
   .output-title em {
-    font-style: italic;
-    color: var(--signal);
+    font-style: normal;
+    color: var(--teal);
+  }
+  .output-summary {
+    font-weight: 400;
+    font-size: 16px;
+    color: rgba(255,255,255,0.85);
+    max-width: 60ch;
+    margin: 8px 0 0;
+    line-height: 1.5;
   }
   .output-actions { display: flex; gap: 10px; flex-wrap: wrap; }
   .output-actions .btn {
-    padding: 10px 16px;
-    font-size: 11px;
+    padding: 11px 20px;
+    font-size: 12px;
+  }
+  .output-actions .btn.ghost {
+    color: var(--white);
+    border-color: rgba(255,255,255,0.4);
+  }
+  .output-actions .btn.ghost:hover {
+    background: var(--white);
+    color: var(--purple);
+    border-color: var(--white);
   }
 
-  .category {
-    margin-bottom: 44px;
-  }
-  .category-name {
-    font-family: var(--serif);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.22em;
-    color: var(--signal);
-    font-weight: 600;
-    margin: 0 0 6px;
-    font-style: normal;
-  }
+  /* ----- Categories & agents ----- */
+  .category { margin-bottom: 48px; }
   .category-rule {
     display: flex;
     align-items: baseline;
     gap: 16px;
-    border-bottom: 1px solid var(--ink);
-    padding-bottom: 8px;
-    margin-bottom: 22px;
+    border-bottom: 1.5px solid var(--rule-on-dark);
+    padding-bottom: 10px;
+    margin-bottom: 24px;
+  }
+  .category-name {
+    font-weight: 900;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--pink);
+    margin: 0;
   }
   .category-count {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--ink-mute);
+    font-weight: 600;
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
     margin-left: auto;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
   }
 
   .agents {
@@ -342,87 +403,124 @@
     gap: 22px;
   }
   .agent {
-    background: rgba(255,253,248,0.7);
-    border: 1px solid var(--rule);
-    border-left: 3px solid var(--signal);
-    padding: 22px 24px;
-    border-radius: 2px;
+    background: var(--white);
+    color: var(--text);
+    border-radius: 14px;
+    padding: 24px 26px;
+    position: relative;
     transition: transform 0.15s, box-shadow 0.15s;
-  }
-  .agent:hover {
-    transform: translateY(-2px);
     box-shadow: var(--shadow);
+    border-top: 4px solid var(--teal);
+  }
+  .agent:nth-child(3n+2) { border-top-color: var(--pink); }
+  .agent:nth-child(3n+3) { border-top-color: var(--purple); }
+
+  .agent:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+  .agent-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
   }
   .agent-name {
-    font-family: var(--serif);
-    font-size: 22px;
-    font-weight: 500;
-    margin: 0 0 8px;
+    font-weight: 900;
+    font-size: 21px;
+    margin: 0;
     letter-spacing: -0.01em;
     line-height: 1.2;
+    color: var(--purple);
+    flex: 1;
+  }
+  .agent-copy {
+    background: var(--purple-lightest);
+    border: 1px solid var(--purple-lighter);
+    color: var(--purple);
+    padding: 6px 10px;
+    font-family: var(--font);
+    font-weight: 800;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-radius: 999px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .agent-copy:hover {
+    background: var(--purple);
+    color: var(--white);
+    border-color: var(--purple);
+  }
+  .agent-copy.copied {
+    background: var(--teal);
+    color: var(--purple-dark);
+    border-color: var(--teal);
+  }
+  .agent-copy svg {
+    width: 11px; height: 11px;
   }
   .agent-desc {
-    font-family: var(--sans);
+    font-weight: 400;
     font-size: 14px;
     line-height: 1.55;
-    color: var(--ink-soft);
-    margin: 0 0 12px;
+    color: var(--text);
+    margin: 0 0 14px;
   }
   .agent-scope {
     margin: 0;
-    padding-left: 18px;
+    padding-left: 20px;
     font-size: 13px;
     line-height: 1.6;
-    color: var(--ink-soft);
+    color: var(--text);
   }
-  .agent-scope li { margin-bottom: 3px; }
+  .agent-scope li { margin-bottom: 4px; }
+  .agent-scope li::marker { color: var(--teal); }
   .agent-sources {
-    margin-top: 14px;
-    padding-top: 12px;
-    border-top: 1px dashed var(--rule);
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--ink-mute);
-    letter-spacing: 0.04em;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--purple-lighter);
+    font-size: 11px;
+    color: var(--text-mute);
+    font-weight: 600;
+    letter-spacing: 0.02em;
   }
   .agent-sources a {
-    color: var(--ink-mute);
+    color: var(--purple);
     text-decoration: none;
-    border-bottom: 1px dotted var(--ink-mute);
-    margin-right: 8px;
+    border-bottom: 1px dotted var(--purple-light);
+    margin-right: 10px;
     word-break: break-all;
+    font-weight: 400;
   }
-  .agent-sources a:hover { color: var(--signal); border-color: var(--signal); }
+  .agent-sources a:hover { color: var(--pink-dark); border-color: var(--pink-dark); }
 
-  /* Notice */
-  .notice {
-    background: var(--signal-soft);
-    border-left: 3px solid var(--signal);
-    padding: 12px 16px;
-    font-size: 13px;
-    line-height: 1.5;
-    margin-bottom: 18px;
-    color: var(--ink);
-  }
-  .notice b { font-weight: 600; }
-
-  /* Footer */
+  /* ----- Footer ----- */
   footer.colophon {
     margin-top: 80px;
-    padding-top: 24px;
-    border-top: 1px solid var(--rule);
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--ink-mute);
-    letter-spacing: 0.06em;
+    padding-top: 28px;
+    border-top: 1px solid var(--rule-on-dark);
+    font-weight: 300;
+    font-size: 12px;
+    color: rgba(255,255,255,0.65);
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 12px;
   }
-  footer a { color: var(--ink-soft); }
+  footer a {
+    color: var(--teal-light);
+    text-decoration: none;
+  }
+  footer a:hover { color: var(--white); }
 
-  /* Spinner */
+  /* ----- Spinner ----- */
   .spinner {
     display: inline-block;
     width: 12px; height: 12px;
@@ -433,22 +531,23 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* ----- Advanced details ----- */
   details.advanced {
-    margin-top: 18px;
-    padding-top: 18px;
-    border-top: 1px dashed var(--rule);
+    margin-top: 22px;
+    padding-top: 22px;
+    border-top: 1px dashed var(--purple-lighter);
   }
   details.advanced summary {
     cursor: pointer;
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.14em;
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--ink-mute);
+    color: var(--text-mute);
     user-select: none;
   }
-  details.advanced summary:hover { color: var(--ink); }
-  details.advanced[open] summary { color: var(--ink); margin-bottom: 16px; }
+  details.advanced summary:hover { color: var(--purple); }
+  details.advanced[open] summary { color: var(--purple); margin-bottom: 18px; }
 
   .key-row {
     display: flex;
@@ -457,35 +556,26 @@
   }
   .key-row input { flex: 1; }
   .key-toggle {
-    background: none;
-    border: 1px solid var(--rule);
-    padding: 11px 14px;
+    background: var(--white);
+    border: 1.5px solid var(--purple-lighter);
+    padding: 11px 16px;
     cursor: pointer;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--ink-soft);
-    border-radius: 2px;
+    font-family: var(--font);
+    font-weight: 800;
+    font-size: 12px;
+    color: var(--purple);
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
   }
-  .key-toggle:hover { border-color: var(--ink); color: var(--ink); }
+  .key-toggle:hover { border-color: var(--purple); background: var(--purple-lightest); }
 
   .empty {
     text-align: center;
     padding: 80px 20px;
-    color: var(--ink-mute);
-    font-family: var(--serif);
+    color: rgba(255,255,255,0.6);
+    font-weight: 300;
     font-size: 18px;
-    font-style: italic;
-  }
-
-  .ascii-rule {
-    font-family: var(--mono);
-    color: var(--ink-mute);
-    font-size: 12px;
-    letter-spacing: -0.05em;
-    overflow: hidden;
-    white-space: nowrap;
-    margin: 30px 0;
-    user-select: none;
   }
 </style>
 </head>
@@ -493,24 +583,23 @@
 <div class="wrap">
 
   <header class="masthead">
-    <div class="brand"><b>Agent Discovery</b> &nbsp;·&nbsp; bootstrap your conversational AI hierarchy</div>
+    <div class="brand">
+      <span class="brand-mark">b</span>
+      <span>Agent Discovery <span class="sub">· bootstrap your boost.ai project</span></span>
+    </div>
     <div class="meta" id="dateMeta"></div>
   </header>
 
   <h1>Point at a URL.<br>Get an <em>agent hierarchy</em>.</h1>
   <p class="lede">
-    A small tool that reads a public website, infers the topics a virtual assistant on that site would need to handle,
-    and returns a clean category → agent → scope tree. Useful for quickly seeding a Boost / Kore / Cognigy / etc.
-    project instead of staring at a blank canvas. Bring your own Anthropic API key — nothing is stored on a server.
+    A small tool that reads a public website, infers the topics a virtual agent on that site would need to handle,
+    and returns a clean category → agent → scope tree. Useful for quickly seeding a boost.ai project instead of
+    starting from a blank canvas. Bring your own Anthropic API key — nothing is stored on a server.
   </p>
 
   <!-- INPUT PANEL -->
   <div class="panel">
     <p class="section-label"><span class="num">01</span> Input</p>
-
-    <div class="notice">
-      <b>First time?</b> The default fetch path uses your own free Cloudflare Worker proxy (5-minute setup, see README). Public CORS proxies have become unreliable in 2026 — using your own Worker is the only consistently-working option. You can also use the <b>Paste content</b> tab to skip fetching entirely.
-    </div>
 
     <div class="tabs">
       <button class="tab active" data-tab="url">From URL</button>
@@ -523,26 +612,9 @@
         <label>Target URL <span class="hint">homepage of the site you want to model</span></label>
         <input type="url" id="targetUrl" placeholder="https://example.com" autocomplete="off" />
       </div>
-      <div class="row-2">
-        <div class="field">
-          <label>Language hint <span class="hint">optional</span></label>
-          <select id="langHint">
-            <option value="auto">Auto-detect</option>
-            <option value="en">English</option>
-            <option value="da">Dansk</option>
-            <option value="sv">Svenska</option>
-            <option value="no">Norsk</option>
-            <option value="de">Deutsch</option>
-            <option value="fr">Français</option>
-            <option value="es">Español</option>
-            <option value="nl">Nederlands</option>
-            <option value="fi">Suomi</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Max pages to fetch <span class="hint">1-12</span></label>
-          <input type="text" id="maxPages" value="6" inputmode="numeric" />
-        </div>
+      <div class="field" style="max-width: 240px;">
+        <label>Max pages to fetch <span class="hint">1–12</span></label>
+        <input type="text" id="maxPages" value="6" inputmode="numeric" />
       </div>
     </div>
 
@@ -594,8 +666,8 @@
       </div>
     </details>
 
-    <div style="margin-top: 22px;" class="btn-row">
-      <button class="btn" id="runBtn">
+    <div style="margin-top: 24px;" class="btn-row">
+      <button class="btn accent" id="runBtn">
         <span id="runLabel">Discover agents</span>
       </button>
       <button class="btn ghost" id="clearBtn" type="button">Clear</button>
@@ -610,8 +682,8 @@
   </div>
 
   <footer class="colophon">
-    <span>BYOK · runs entirely client-side · no data leaves your browser except to Anthropic + the chosen CORS proxy</span>
-    <span><a href="https://github.com" target="_blank" rel="noopener">source</a></span>
+    <span>BYOK · runs entirely client-side · no data leaves your browser except to Anthropic + your CORS proxy</span>
+    <span>Made for boost.ai · <a href="https://github.com" target="_blank" rel="noopener">source</a></span>
   </footer>
 </div>
 
@@ -633,11 +705,11 @@ function logLine(msg, cls = '') {
 }
 function clearLog() { log.innerHTML = ''; log.style.display = 'none'; }
 
-/* Date meta in masthead */
+/* Date meta */
 (function setDate() {
   const d = new Date();
   const f = d.toLocaleDateString('en-US', { year:'numeric', month:'short', day:'2-digit' }).toUpperCase();
-  $('dateMeta').textContent = `Vol. 01 · ${f}`;
+  $('dateMeta').textContent = f;
 })();
 
 /* Tab switching */
@@ -710,11 +782,9 @@ function scoreLink(url, anchorText) {
   for (const kw of SUPPORT_KEYWORDS) {
     if (hay.includes(kw)) score += 1;
   }
-  // Penalize obviously irrelevant
   if (/\.(jpg|jpeg|png|gif|svg|pdf|zip|mp4|css|js)(\?|$)/i.test(url)) score -= 10;
   if (/(login|signin|signup|cart|checkout|account|password|logout)/i.test(hay)) score -= 3;
   if (/(privacy|cookie|terms|legal|gdpr|imprint|impressum)/i.test(hay)) score -= 2;
-  // Prefer same-language paths
   const depth = (url.split('/').length - 3);
   if (depth > 4) score -= 1;
   return score;
@@ -733,7 +803,6 @@ function sameDomain(a, b) {
   } catch { return false; }
 }
 
-/* List of proxies to try in order. Each entry knows how to build a target URL. */
 const PROXY_CHAIN = [
   { name: 'corsproxy.io',   build: (u) => 'https://corsproxy.io/?url=' + encodeURIComponent(u) },
   { name: 'allorigins.win', build: (u) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) },
@@ -749,18 +818,6 @@ function withTimeout(promise, ms, label) {
   ]);
 }
 
-/**
- * Fetch a URL via the user-selected proxy first, then fall back through PROXY_CHAIN
- * if that fails. Returns text. No AbortSignal — uses Promise.race for timeout
- * so it works in restricted browser environments (extensions, sandboxed iframes).
- *
- * preferredProxyPrefix:
- *   undefined         → walk the full public-proxy chain
- *   ''                → try direct fetch first, then fall back
- *   'WORKER:<url>'    → use the user's Cloudflare worker as the FIRST and ONLY attempt
- *                       (no fallback — if their worker fails we want them to know)
- *   '<prefix>'        → use that as preferred, then fall back through chain
- */
 async function fetchViaProxy(url, preferredProxyPrefix) {
   const strategies = [];
 
@@ -770,8 +827,6 @@ async function fetchViaProxy(url, preferredProxyPrefix) {
       name: 'worker',
       target: workerBase + '/?url=' + encodeURIComponent(url),
     });
-    // Intentionally NO fallback — if the user has set up a worker, we want errors to surface,
-    // not silently fall through to (degraded) public proxies.
   } else if (preferredProxyPrefix === '') {
     strategies.push({ name: 'direct', target: url });
     for (const p of PROXY_CHAIN) {
@@ -786,7 +841,6 @@ async function fetchViaProxy(url, preferredProxyPrefix) {
       }
     }
   } else {
-    // 'auto' — full chain, no preferred entry
     for (const p of PROXY_CHAIN) {
       strategies.push({ name: p.name, target: p.build(url) });
     }
@@ -834,9 +888,7 @@ function extractLinksFromHtml(html, baseUrl) {
 
 function extractTextFromHtml(html, sourceUrl) {
   const doc = new DOMParser().parseFromString(html, 'text/html');
-  // Strip noise
   doc.querySelectorAll('script, style, noscript, svg, iframe, nav[aria-label*="cookie" i]').forEach(n => n.remove());
-  // Prefer main / article
   const root = doc.querySelector('main') || doc.querySelector('article') || doc.body || doc.documentElement;
   if (!root) return { title: '', text: '' };
   const title = (doc.querySelector('title')?.textContent || '').trim();
@@ -896,11 +948,9 @@ async function discoverAndFetchPages(startUrl, maxPages, proxy) {
     throw new Error(`Could not fetch ${startUrl}. All public CORS proxies failed (last error: ${e.message}). Public proxies are unreliable in 2026 — set up your own Cloudflare Worker (see README) for a stable solution. Or use the "Paste content" tab.`);
   }
 
-  // Score links from homepage
   const homeLinks = extractLinksFromHtml(homeHtml, startUrl);
   logLine(`<span class="dim">→</span> found ${homeLinks.length} same-domain links on homepage`, 'dim');
 
-  // Try sitemap
   let sitemapUrls = [];
   try {
     sitemapUrls = await tryFetchSitemap(startUrl, proxy);
@@ -911,8 +961,7 @@ async function discoverAndFetchPages(startUrl, maxPages, proxy) {
     }
   } catch {}
 
-  // Combine and rank
-  const candidates = new Map(); // url -> {url, text, score}
+  const candidates = new Map();
   homeLinks.forEach(l => {
     const score = scoreLink(l.url, l.text);
     candidates.set(l.url, { url: l.url, text: l.text, score });
@@ -922,7 +971,6 @@ async function discoverAndFetchPages(startUrl, maxPages, proxy) {
     candidates.set(u, { url: u, text: '', score: scoreLink(u, '') });
   });
 
-  // Drop the start URL (we already have it) and obvious duplicates
   candidates.delete(startUrl);
   candidates.delete(startUrl.replace(/\/$/, ''));
   candidates.delete(startUrl + '/');
@@ -934,7 +982,6 @@ async function discoverAndFetchPages(startUrl, maxPages, proxy) {
 
   logLine(`<span class="dim">→</span> ${ranked.length} support-relevant pages selected for fetching`, 'dim');
 
-  // Fetch them
   const pages = [];
   pages.push({
     url: startUrl,
@@ -963,27 +1010,24 @@ async function discoverAndFetchPages(startUrl, maxPages, proxy) {
    2. LLM call
    ---------------------------------------------------------- */
 
-function buildPrompt(pages, langHint, sourceHint) {
-  const langLine = langHint && langHint !== 'auto'
-    ? `Output the agent names and descriptions in: ${langHint}.`
-    : `Output the agent names and descriptions in the same language as the source content (auto-detect).`;
-
+function buildPrompt(pages, sourceHint) {
   const corpus = pages.map((p, i) =>
     `--- PAGE ${i+1} ---\nURL: ${p.url}\nTITLE: ${p.title || '(no title)'}\n${p.meta ? 'META: ' + p.meta + '\n' : ''}\n${p.text}`
   ).join('\n\n');
 
-  return `You are designing the conversational AI agent hierarchy that a virtual assistant on this website would need.
+  return `You are designing the conversational AI agent hierarchy for a boost.ai virtual agent on this website.
 
 Source: ${sourceHint}
-${langLine}
 
-Read the content below and propose a clean hierarchy of CATEGORIES → AGENTS that this site's chatbot should have. Be GROUNDED — only propose agents that are clearly supported by topics actually present in the content. Do not invent agents for things the site does not appear to offer. If the content is thin, propose fewer agents rather than padding.
+ALL output (category names, agent names, descriptions, scope items) MUST be in English, regardless of the source content language. Translate as needed.
+
+Read the content below and propose a clean hierarchy of CATEGORIES → AGENTS that this site's virtual agent should have. Be GROUNDED — only propose agents that are clearly supported by topics actually present in the content. Do not invent agents for things the site does not appear to offer. If the content is thin, propose fewer agents rather than padding.
 
 Guidelines:
 - 2 to 6 categories. Each category groups related agents.
 - 2 to 5 agents per category. An "agent" handles a coherent set of related questions/tasks (e.g. "Subscription terms", "Technical support — internet", "Billing and invoices").
-- Agent NAMES should be short noun phrases (2–5 words), in the source language.
-- Agent DESCRIPTIONS should be 1–2 sentences explaining what the agent handles, plus a 2–5 item bulleted scope of the topics it covers.
+- Agent NAMES: short noun phrases (2–5 words), in English.
+- Agent DESCRIPTIONS: 1–2 sentences explaining what the agent handles, plus a 2–5 item bulleted scope of the topics it covers (also in English).
 - For each agent, list the 1–3 source URLs (from the PAGE list above) that justify it.
 - Avoid generic agents like "General questions" unless the site genuinely warrants one.
 
@@ -991,14 +1035,14 @@ Return ONLY valid JSON, no commentary, in exactly this shape:
 
 {
   "site_summary": "1–2 sentence factual summary of what this site/organization does, in English.",
-  "detected_language": "ISO 639-1 code, e.g. 'da', 'en'",
+  "detected_language": "ISO 639-1 code of the source content, e.g. 'da', 'en'",
   "categories": [
     {
-      "name": "Category name",
+      "name": "Category name in English",
       "agents": [
         {
-          "name": "Agent name",
-          "description": "1–2 sentence description.",
+          "name": "Agent name in English",
+          "description": "1–2 sentence description in English.",
           "scope": ["topic 1", "topic 2", "topic 3"],
           "source_urls": ["https://..."]
         }
@@ -1039,9 +1083,7 @@ async function callClaude(apiKey, model, prompt) {
 }
 
 function extractJson(text) {
-  // Strip markdown fences
   let t = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
-  // Find outermost {...}
   const start = t.indexOf('{');
   const end = t.lastIndexOf('}');
   if (start === -1 || end === -1) throw new Error('No JSON object in model response.');
@@ -1056,6 +1098,8 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+const COPY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+
 function renderResult(result, sourceHint) {
   const out = $('output');
   if (!result.categories || result.categories.length === 0) {
@@ -1066,9 +1110,9 @@ function renderResult(result, sourceHint) {
   let html = `
     <div class="output-header">
       <div>
-        <p class="section-label"><span class="num">02</span> Result · ${escapeHtml(sourceHint)}</p>
+        <p class="section-label" style="color: var(--teal);"><span class="num" style="color: var(--pink);">02</span> Result · ${escapeHtml(sourceHint)}</p>
         <h2 class="output-title">Agent <em>hierarchy</em></h2>
-        ${result.site_summary ? `<p style="font-family: var(--serif); font-size: 16px; color: var(--ink-soft); max-width: 60ch; margin: 6px 0 0;">${escapeHtml(result.site_summary)}</p>` : ''}
+        ${result.site_summary ? `<p class="output-summary">${escapeHtml(result.site_summary)}</p>` : ''}
       </div>
       <div class="output-actions">
         <button class="btn ghost" id="copyJson">Copy JSON</button>
@@ -1087,9 +1131,14 @@ function renderResult(result, sourceHint) {
           <span class="category-count">${agentCount} agent${agentCount === 1 ? '' : 's'}</span>
         </div>
         <div class="agents">
-          ${(cat.agents || []).map(a => `
+          ${(cat.agents || []).map((a) => `
             <div class="agent">
-              <h4 class="agent-name">${escapeHtml(a.name || 'Untitled agent')}</h4>
+              <div class="agent-head">
+                <h4 class="agent-name">${escapeHtml(a.name || 'Untitled agent')}</h4>
+                <button class="agent-copy" data-desc="${escapeHtml(a.description || '')}" title="Copy description">
+                  ${COPY_ICON}<span>Copy</span>
+                </button>
+              </div>
               <p class="agent-desc">${escapeHtml(a.description || '')}</p>
               ${(a.scope && a.scope.length) ? `<ul class="agent-scope">${a.scope.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ul>` : ''}
               ${(a.source_urls && a.source_urls.length) ? `
@@ -1105,6 +1154,23 @@ function renderResult(result, sourceHint) {
   });
 
   out.innerHTML = html;
+
+  /* Per-agent copy: just the description text */
+  out.querySelectorAll('.agent-copy').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const desc = btn.getAttribute('data-desc') || '';
+      navigator.clipboard.writeText(desc).then(() => {
+        const span = btn.querySelector('span');
+        const orig = span.textContent;
+        btn.classList.add('copied');
+        span.textContent = 'Copied';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          span.textContent = orig;
+        }, 1500);
+      });
+    });
+  });
 
   $('copyJson').addEventListener('click', () => {
     navigator.clipboard.writeText(JSON.stringify(result, null, 2));
@@ -1156,14 +1222,8 @@ async function run() {
   if (!apiKey) { logLine('<span class="err">✗ API key is required.</span>', 'err'); return; }
 
   const activeTab = document.querySelector('.tab.active').dataset.tab;
-  const langHint = $('langHint').value;
   const proxyChoice = $('corsProxy').value;
 
-  // Resolve the proxy choice into a value fetchViaProxy understands:
-  //   'worker' + workerUrl present → 'WORKER:<url>'
-  //   'auto'                       → undefined (walks full chain)
-  //   ''                           → '' (direct first, then fallback)
-  //   else                         → that prefix string
   let proxy;
   if (proxyChoice === 'worker') {
     const w = ($('workerUrl').value || '').trim();
@@ -1209,7 +1269,7 @@ async function run() {
     }
 
     logLine(`<span class="info">▸ Calling Claude (${model})...</span>`, 'info');
-    const prompt = buildPrompt(pages, langHint, sourceHint);
+    const prompt = buildPrompt(pages, sourceHint);
     const responseText = await callClaude(apiKey, model, prompt);
     logLine(`<span class="ok">✓ Response received (${responseText.length.toLocaleString()} chars)</span>`, 'ok');
 
@@ -1242,7 +1302,6 @@ function setRunning(running) {
 
 $('runBtn').addEventListener('click', run);
 
-/* Enter to submit on URL field */
 $('targetUrl').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { e.preventDefault(); run(); }
 });
