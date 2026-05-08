@@ -1,33 +1,71 @@
-<script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
-<script>
-  var boost = window.boostInit("daedalus", {
-    chatPanel: {
-      header: {
-        title: "boost.ai support"
-      },
-      styling: {
-        avatarShape: "rounded",
-        panelShape: "rounded",
-        primaryColor: "#59195d",
-        contrastColor: "#ffffff",
-        chatBubbles: {
-          userBackgroundColor: "#36b595",
-          userTextColor: "#ffffff",
-          vaBackgroundColor: "#ffecf6",
-          vaTextColor: "#1e1e1e",
-          typingDotColor: "#36b595"
-        },
-        buttons: {
-          backgroundColor: "#36b595",
-          textColor: "#ffffff",
-          hoverBackgroundColor: "#208269",
-          hoverTextColor: "#ffffff",
-          focusOutlineColor: "#e383b7"
-        }
-      },
-      settings: {
-        openTextLinksInNewTab: true
-      }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>boost.ai chat panel test</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      max-width: 720px;
+      margin: 80px auto;
+      padding: 0 24px;
+      color: #1e1e1e;
+      line-height: 1.55;
     }
-  });
-</script>
+    h1 { font-weight: 800; letter-spacing: -0.01em; }
+    p { color: #4a4a4a; }
+    button {
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 12px 22px;
+      border-radius: 8px;
+      border: none;
+      background: #59195d;
+      color: #ffffff;
+      cursor: pointer;
+    }
+    button:hover { background: #3e1241; }
+  </style>
+</head>
+<body>
+  <h1>boost.ai chat panel test</h1>
+  <p>Click the button below to open the chat panel, or wait for it to appear in the corner.</p>
+  <button type="button" onclick="boost.chatPanel.show()">Open chat</button>
+
+  <script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
+  <script>
+    var boost = window.boostInit("daedalus", {
+      chatPanel: {
+        header: {
+          title: "boost.ai support"
+        },
+        styling: {
+          avatarShape: "rounded",
+          panelShape: "rounded",
+          primaryColor: "#59195d",
+          contrastColor: "#ffffff",
+          chatBubbles: {
+            userBackgroundColor: "#36b595",
+            userTextColor: "#ffffff",
+            vaBackgroundColor: "#ffecf6",
+            vaTextColor: "#1e1e1e",
+            typingDotColor: "#36b595"
+          },
+          buttons: {
+            backgroundColor: "#36b595",
+            textColor: "#ffffff",
+            hoverBackgroundColor: "#208269",
+            hoverTextColor: "#ffffff",
+            focusOutlineColor: "#e383b7"
+          }
+        },
+        settings: {
+          openTextLinksInNewTab: true
+        }
+      }
+    });
+  </script>
+</body>
+</html>
