@@ -1,0 +1,33 @@
+<script src="https://daedalus.boost.ai/chatPanel/chatPanel.js"></script>
+<script>
+  var boost = window.boostInit("daedalus", {
+    chatPanel: {
+      header: {
+        title: "boost.ai support"
+      },
+      styling: {
+        avatarShape: "rounded",
+        panelShape: "rounded",
+        primaryColor: "#59195d",
+        contrastColor: "#ffffff",
+        chatBubbles: {
+          userBackgroundColor: "#36b595",
+          userTextColor: "#ffffff",
+          vaBackgroundColor: "#ffecf6",
+          vaTextColor: "#1e1e1e",
+          typingDotColor: "#36b595"
+        },
+        buttons: {
+          backgroundColor: "#36b595",
+          textColor: "#ffffff",
+          hoverBackgroundColor: "#208269",
+          hoverTextColor: "#ffffff",
+          focusOutlineColor: "#e383b7"
+        }
+      },
+      settings: {
+        openTextLinksInNewTab: true
+      }
+    }
+  });
+</script>
